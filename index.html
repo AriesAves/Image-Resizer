@@ -886,9 +886,319 @@
   }
   .preset-btn .icon { font-size: 22px; display: block; margin-bottom: 4px; }
   .preset-btn .name { font-weight: 600; color: #333; }
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+  .preset-btn {
+    background: white;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 10px 6px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s;
+    font-size: 12px;
+    color: #555;
+  }
+  .preset-btn:hover {
+    border-color: #ff9800;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 152, 0, 0.2);
+  }
+  .preset-btn .icon { font-size: 22px; display: block; margin-bottom: 4px; }
+  .preset-btn .name { font-weight: 600; color: #333; }
 
   /* ============= Recent Files ============= */
   /* Removed: Recent files feature caused localStorage bugs. */
+
+  /* ============= Apply Selected Fixes + Progress ============= */
+  .fixes-summary {
+    background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+    border: 1px solid #ffcc80;
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin: 12px 0;
+    display: flex; align-items: center; gap: 12px;
+    font-size: 13px; color: #e65100;
+  }
+  .fixes-summary .count {
+    background: #ff9800; color: white;
+    padding: 2px 10px; border-radius: 12px;
+    font-weight: 700; font-size: 12px;
+  }
+  .fixes-summary button {
+    background: linear-gradient(45deg, #ff9800, #ff6b6b);
+    color: white; border: none;
+    padding: 8px 18px; border-radius: 6px;
+    font-size: 13px; font-weight: 600;
+    cursor: pointer; margin-left: auto;
+    box-shadow: 0 2px 8px rgba(255,152,0,0.3);
+  }
+  .fixes-summary button:hover { transform: translateY(-1px); }
+  .fixes-summary button:disabled { background: #ccc; cursor: not-allowed; transform: none; box-shadow: none; }
+  .fixes-summary .select-all {
+    background: transparent; color: #e65100;
+    border: 1px solid #e65100; padding: 6px 12px;
+    box-shadow: none; font-weight: 500;
+  }
+  .fixes-summary .select-all:hover { background: rgba(255,152,0,0.1); }
+
+  /* Progress panel */
+  .progress-panel {
+    background: white;
+    border: 2px solid #ff9800;
+    border-radius: 10px;
+    padding: 16px;
+    margin: 14px 0;
+    box-shadow: 0 4px 12px rgba(255,152,0,0.15);
+  }
+  .progress-panel.idle { display: none; }
+  .progress-panel .stage-icon {
+    font-size: 24px; margin-right: 10px;
+    display: inline-block; vertical-align: middle;
+  }
+  .progress-panel .stage-title {
+    font-size: 15px; font-weight: 700; color: #333;
+    display: flex; align-items: center;
+  }
+  .progress-panel .stage-message {
+    font-size: 13px; color: #666;
+    margin: 4px 0 10px 34px;
+  }
+  .progress-panel .bar {
+    height: 12px;
+    background: #f0f0f0;
+    border-radius: 6px;
+    overflow: hidden;
+    margin: 8px 0;
+    position: relative;
+  }
+  .progress-panel .bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #ff9800, #ff6b6b);
+    width: 0%;
+    transition: width 0.3s;
+  }
+  .progress-panel .bar-fill.indeterminate {
+    width: 30%;
+    animation: indet 1.5s ease-in-out infinite;
+  }
+  @keyframes indet {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(400%); }
+  }
+  .progress-panel .stages {
+    display: flex; align-items: center;
+    margin: 12px 0;
+    flex-wrap: wrap; gap: 4px;
+  }
+  .progress-panel .stages .stage-pill {
+    padding: 4px 10px;
+    background: #f0f0f0;
+    color: #888;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .progress-panel .stages .stage-pill.active {
+    background: #ff9800; color: white;
+  }
+  .progress-panel .stages .stage-pill.done {
+    background: #28a745; color: white;
+  }
+  .progress-panel .stages .arrow {
+    color: #ccc; font-size: 12px;
+  }
+  .progress-panel .actions {
+    display: flex; gap: 8px; justify-content: flex-end;
+    margin-top: 12px;
+  }
+  .progress-panel .actions button {
+    background: transparent;
+    color: #666;
+    border: 1px solid #ddd;
+    padding: 5px 12px; border-radius: 4px;
+    font-size: 12px; cursor: pointer;
+  }
+  .progress-panel .actions button:hover { background: #f8f9ff; }
+  .progress-panel .actions button.primary {
+    background: #ff9800; color: white; border-color: #ff9800;
+  }
+  .progress-panel .success-banner {
+    background: linear-gradient(135deg, #d4edda, #c3e6cb);
+    color: #155724;
+    border-left: 4px solid #28a745;
+    padding: 10px 14px; border-radius: 4px;
+    font-size: 13px; margin: 8px 0;
+  }
+  .progress-panel .error-banner {
+    background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+    color: #721c24;
+    border-left: 4px solid #dc3545;
+    padding: 10px 14px; border-radius: 4px;
+    font-size: 13px; margin: 8px 0;
+  }
+
+  /* Disabled state for action buttons */
+  .btn-busy {
+    background: #ccc !important;
+    cursor: not-allowed !important;
+    pointer-events: none;
+    transform: none !important;
+    box-shadow: none !important;
+  }
+
+  /* ============= Preview Mode (per-fix Try) ============= */
+  .enh-cat .opt {
+    position: relative;
+    padding-right: 30px; /* space for Try button */
+  }
+  .opt-try {
+    position: absolute;
+    right: 0; top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    color: #ff9800;
+    border: 1px solid #ff9800;
+    border-radius: 4px;
+    padding: 1px 7px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    line-height: 1.4;
+    transition: all 0.15s;
+  }
+  .opt-try:hover {
+    background: #ff9800;
+    color: white;
+  }
+  .opt-try.applied {
+    background: #28a745;
+    color: white;
+    border-color: #28a745;
+  }
+  .opt-try:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+
+  /* Preview controls (Undo / Reset / Commit) */
+  .preview-controls {
+    display: flex; align-items: center; gap: 6px;
+    margin: 10px 0 4px;
+    padding: 8px 10px;
+    background: #f8f9ff;
+    border-radius: 6px;
+    font-size: 12px;
+    color: #555;
+  }
+  .preview-controls .stack-info {
+    font-weight: 600;
+    color: #ff9800;
+  }
+  .preview-controls button {
+    background: white;
+    color: #555;
+    border: 1px solid #ddd;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    cursor: pointer;
+  }
+  .preview-controls button:hover { background: #f0f0f0; }
+  .preview-controls button:disabled { opacity: 0.4; cursor: not-allowed; }
+  .preview-controls .commit-btn {
+    background: #28a745;
+    color: white;
+    border-color: #28a745;
+    margin-left: auto;
+  }
+  .preview-controls .commit-btn:hover { background: #1e7e34; }
+  .preview-controls .commit-btn:disabled { background: #ccc; border-color: #ccc; }
+
+  /* ============= Step Diff (Compare with previous step) ============= */
+  .step-diff {
+    display: flex; align-items: center; gap: 8px;
+    margin: 6px 0 4px;
+    padding: 8px 10px;
+    background: linear-gradient(135deg, #e8ebff, #f0f4ff);
+    border-radius: 6px;
+    font-size: 12px;
+    color: #4a4a6e;
+    border-left: 3px solid #667eea;
+  }
+  .step-diff .delta {
+    font-size: 14px; font-weight: 700;
+    color: #667eea;
+  }
+  .step-diff .delta-big {
+    color: #ff9800; font-size: 16px;
+  }
+  .step-diff .delta-zero {
+    color: #888; font-size: 13px;
+  }
+  .step-diff .intensity-bar {
+    flex: 1; max-width: 120px;
+    height: 6px; background: #e0e0e0;
+    border-radius: 3px; overflow: hidden;
+    position: relative;
+  }
+  .step-diff .intensity-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #28a745, #fbbf24, #dc3545);
+    width: 0%;
+    transition: width 0.3s;
+  }
+  .step-diff .toggle-diff-btn {
+    margin-left: auto;
+    background: white;
+    color: #667eea;
+    border: 1px solid #667eea;
+    padding: 3px 10px; border-radius: 4px;
+    font-size: 11px; font-weight: 600;
+    cursor: pointer;
+  }
+  .step-diff .toggle-diff-btn:hover { background: #667eea; color: white; }
+  .step-diff .toggle-diff-btn.active {
+    background: #667eea; color: white;
+  }
+  .step-history {
+    margin: 6px 0 4px;
+    max-height: 120px; overflow-y: auto;
+    background: white;
+    border-radius: 6px;
+    padding: 4px 6px;
+    font-size: 11px;
+  }
+  .step-history .step-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 4px 6px;
+    border-bottom: 1px solid #f0f0f0;
+    color: #555;
+  }
+  .step-history .step-item:last-child { border-bottom: none; }
+  .step-history .step-item .step-num {
+    background: #667eea; color: white;
+    width: 18px; height: 18px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .step-history .step-item .step-label { flex: 1; }
+  .step-history .step-item .step-delta {
+    color: #ff9800; font-weight: 700;
+    font-size: 11px;
+  }
+
+  /* Diff overlay canvas */
+  .diff-canvas {
+    position: absolute; top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    opacity: 0.7;
+    mix-blend-mode: normal;
+  }
 
   /* ============= Zoom + Pan ============= */
   .zoom-toolbar {
@@ -1158,9 +1468,10 @@
     <!-- 1. Upload -->
     <div class="upload-area" data-input="upload-enhance" id="enhUpload">
       <div style="font-size: 48px; margin-bottom: 15px;">✨</div>
-      <h3>Upload image for AI enhancement</h3>
+      <h3>Upload image or PDF for AI enhancement</h3>
       <p>Auto-analyze, detect issues, fix them — all in your browser.</p>
-      <input type="file" id="upload-enhance" accept="image/png,image/jpeg,image/webp,image/bmp,application/pdf" style="display: none;">
+      <input type="file" id="upload-enhance" accept="image/png,image/jpeg,image/webp,image/bmp,image/tiff,application/pdf" style="display: none;">
+      <p style="font-size: 12px; color: #888; margin-top: 8px;">Supported: PNG, JPG, WebP, BMP, TIFF, PDF</p>
       <div class="kbd-hints" style="margin-top: 14px; max-width: 420px; margin-left: auto; margin-right: auto;">
         <span><kbd>1</kbd>/<kbd>2</kbd>/<kbd>3</kbd> tabs</span>
         <span><kbd>Space</kbd> before/after</span>
@@ -1296,6 +1607,47 @@
           <label class="opt"><input type="checkbox" id="fx-generativeFill" disabled> Generative Fill <span class="soon">SD</span></label>
         </div>
       </div>
+
+      <!-- Apply Selected Fixes summary + button -->
+      <div class="fixes-summary">
+        <span class="count" id="fixesCount">0</span>
+        <span><span id="fixesCountText">No fixes selected</span></span>
+        <button class="select-all" id="fixesSelectAll">Select All</button>
+        <button class="select-all" id="fixesClearAll">Clear</button>
+        <button id="applySelectedFixesBtn" disabled>✨ Apply Selected Fixes</button>
+      </div>
+
+      <!-- Preview Mode (try one fix at a time) -->
+      <div class="preview-controls" id="previewControls" style="display:none;">
+        <span>Preview: <span class="stack-info" id="previewStackInfo">none</span></span>
+        <button id="undoLastPreviewBtn" disabled title="Undo last previewed fix">↶ Undo Last</button>
+        <button id="resetAllPreviewsBtn" disabled title="Reset all previews to original">↻ Reset</button>
+        <button class="commit-btn" id="commitPreviewsBtn" disabled title="Keep previewed state">✓ Commit</button>
+      </div>
+    </div>
+
+    <!-- Progress Panel (shows during long operations) -->
+    <div class="progress-panel idle" id="progressPanel">
+      <div class="stage-title">
+        <span class="stage-icon" id="progressIcon">⏳</span>
+        <span id="progressTitle">Processing...</span>
+      </div>
+      <div class="stage-message" id="progressMessage">Initializing...</div>
+      <div class="bar"><div class="bar-fill" id="progressBarFill"></div></div>
+      <div class="stages" id="progressStages">
+        <span class="stage-pill" data-stage="upload">📤 Upload</span>
+        <span class="arrow">→</span>
+        <span class="stage-pill" data-stage="analyze">🔍 Analyze</span>
+        <span class="arrow">→</span>
+        <span class="stage-pill" data-stage="apply">✨ Apply Fixes</span>
+        <span class="arrow">→</span>
+        <span class="stage-pill" data-stage="export">📤 Export</span>
+      </div>
+      <div id="progressExtra"></div>
+      <div class="actions">
+        <button id="progressCancelBtn" style="display:none;">✕ Cancel</button>
+        <button id="progressDismissBtn" class="primary" style="display:none;">Done</button>
+      </div>
     </div>
 
     <!-- Auto Fix card -->
@@ -1354,10 +1706,14 @@
         <button data-zoom="in" title="Zoom in">+</button>
         <button data-zoom="reset" title="Reset zoom">⟲</button>
         <span style="flex:1"></span>
+        <button data-diff="toggle" id="enhDiffToggleBtn" style="background: rgba(255,255,255,0.1); color: #ff9800; border: 1px solid #ff9800; padding: 3px 10px; border-radius: 4px; font-size: 11px; font-weight: 600; cursor: pointer; margin-right: 8px;" title="Show diff between original and current state">
+          ◐ Show Diff
+        </button>
         <span style="color:#888; font-size:11px;">scroll to zoom · drag to pan</span>
       </div>
       <div class="compare-wrap" id="enhCompareWrap" style="display:none;">
         <canvas id="enhCompareAfter"></canvas>
+        <canvas id="enhDiffCanvas" class="diff-canvas" style="display:none;"></canvas>
         <div class="compare-overlay">
           <div class="compare-clip"><canvas id="enhCompareBefore"></canvas></div>
           <div class="compare-handle" id="enhCompareHandle">⇆</div>
@@ -1403,6 +1759,7 @@
           <button data-fmt="jpg">JPG</button>
           <button data-fmt="webp">WEBP</button>
           <button data-fmt="bmp">BMP</button>
+          <button data-fmt="pdf" id="enhExportPdfBtn">📄 PDF</button>
         </div>
       </div>
       <div class="export-row">
@@ -1415,7 +1772,7 @@
         <input type="text" id="enhExportFilename" value="enhanced_image">
       </div>
       <div style="text-align: right; margin-top: 12px;">
-        <button class="btn btn-success" id="enhExportBtn">📤 Export Image</button>
+        <button class="btn btn-success" id="enhExportBtn">📤 Export</button>
       </div>
     </div>
 
@@ -1459,6 +1816,8 @@
 
 <!-- PDF.js for PDF support (same as before) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+<!-- pdf-lib for PDF export (preserves page size/orientation, embeds images) -->
+<script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
 
 <!-- ================== AI ENGINE: TensorFlow.js + UpscalerJS ================== -->
 <!-- TF.js core -->
@@ -1626,7 +1985,8 @@ function handleFileSelect(event, tabType) {
     processedBlob = null;
     processedMeta = null;
   }
-  if (file.type === 'application/pdf' && (tabType === 'resize' || currentTab === 'resize')) {
+  if (file.type === 'application/pdf') {
+    // PDFs are supported in both Resize and AI Enhance tabs
     loadPDF(file);
   } else if (file.type.startsWith('image/')) {
     loadImage(file);
@@ -1674,7 +2034,19 @@ async function loadPDF(file) {
       totalPages = pdfDoc.numPages;
       currentPage = 1;
       await renderPDFPage(currentPage);
-      showMessage(`✅ PDF loaded · ${totalPages} page(s)`, 'success');
+      // For the AI Enhance tab, copy the rendered page to processedCanvas
+      if (currentTab === 'enhance') {
+        processedCanvas.width = originalCanvas.width;
+        processedCanvas.height = originalCanvas.height;
+        processedCtx.drawImage(originalCanvas, 0, 0);
+        // Reset enhanced pages (will be filled on Apply Selected Fixes)
+        enhancedPages = [];
+        // Trigger the post-image-load hooks for the enhance tab
+        runPostImageLoadHooks();
+        showMessage(`✅ PDF loaded · ${totalPages} page(s) — pick fixes, then Apply Selected Fixes`, 'success', 4000);
+      } else {
+        showMessage(`✅ PDF loaded · ${totalPages} page(s)`, 'success');
+      }
     };
     reader.readAsArrayBuffer(file);
   } catch (err) {
@@ -1694,6 +2066,12 @@ async function renderPDFPage(num) {
   await page.render({ canvasContext: originalCtx, viewport: vp }).promise;
   document.getElementById('previewContainer').style.display = 'grid';
   updateFileInfo();
+  // If on enhance tab, also keep processedCanvas in sync
+  if (currentTab === 'enhance') {
+    processedCanvas.width = vp.width;
+    processedCanvas.height = vp.height;
+    processedCtx.drawImage(originalCanvas, 0, 0);
+  }
 }
 
 // ---------- Dimension sync (resize tab) ----------
@@ -2263,6 +2641,9 @@ function revealEnhSections() {
     const el = document.getElementById(s);
     if (el) el.style.display = 'block';
   });
+  // Show preview controls too
+  const pc = document.getElementById('previewControls');
+  if (pc) pc.style.display = 'flex';
 }
 
 // Wire up enhance tab-specific UI
@@ -2807,6 +3188,8 @@ function showCompareStudio() {
     currentZoom = 1; panX = 0; panY = 0;
     if (typeof applyZoom === 'function') applyZoom();
   }
+  // Re-render the diff overlay if it's active
+  if (typeof renderDiffIfActive === 'function') renderDiffIfActive();
   // Show zoom toolbar and reset row
   const zt = document.getElementById('enhZoomToolbar');
   const rr = document.getElementById('enhResetRow');
@@ -2856,8 +3239,13 @@ function updateStudioInfo() {
 function exportStudioImage() {
   if (!currentFile) { showMessage('No image to export', 'error'); return; }
   const fmt = document.querySelector('#enhExportFormat button.selected')?.dataset.fmt || 'png';
-  const quality = parseInt(document.getElementById('enhExportQuality').value, 10) / 100;
   const filename = document.getElementById('enhExportFilename').value || 'enhanced_image';
+  // PDF uses a different export path
+  if (fmt === 'pdf') {
+    exportAsPDF();
+    return;
+  }
+  const quality = parseInt(document.getElementById('enhExportQuality').value, 10) / 100;
   const mime = fmt === 'jpg' ? 'image/jpeg' : `image/${fmt}`;
   processedCanvas.toBlob(blob => {
     if (!blob) { showMessage('Export failed', 'error'); return; }
@@ -2908,10 +3296,189 @@ function runPostImageLoadHooks() {
 //   - Real-time slider preview (debounced)
 //   - Zoom + Pan on the before/after preview
 //   - Keyboard shortcuts
-//   - Recent files (localStorage)
+//   - Recent files (localStorage)   [removed]
 //   - EXIF viewer
 //   - Reset / Toggle / Download Original
+//   - Progress manager (upload / analyze / apply / export)
+//   - Apply Selected Fixes workflow
+//   - PDF input / output via pdf-lib
 // =============================================================
+
+// =============================================================
+//   PROGRESS MANAGER
+//   Single source of truth for all long-running operations.
+//   Stages: upload → analyze → apply → export
+// =============================================================
+
+const Progress = (() => {
+  let panel, icon, title, msg, barFill, stagesEl, extraEl, cancelBtn, dismissBtn;
+  let currentStage = null;
+  let isCancelled = false;
+  let onCancelHandler = null;
+
+  function init() {
+    panel     = document.getElementById('progressPanel');
+    icon      = document.getElementById('progressIcon');
+    title     = document.getElementById('progressTitle');
+    msg       = document.getElementById('progressMessage');
+    barFill   = document.getElementById('progressBarFill');
+    stagesEl  = document.getElementById('progressStages');
+    extraEl   = document.getElementById('progressExtra');
+    cancelBtn = document.getElementById('progressCancelBtn');
+    dismissBtn= document.getElementById('progressDismissBtn');
+    if (cancelBtn) cancelBtn.addEventListener('click', () => cancel());
+    if (dismissBtn) dismissBtn.addEventListener('click', () => dismiss());
+  }
+
+  function show() {
+    if (!panel) init();
+    panel.classList.remove('idle');
+    extraEl.innerHTML = '';
+    if (cancelBtn) cancelBtn.style.display = 'inline-block';
+    if (dismissBtn) dismissBtn.style.display = 'none';
+    isCancelled = false;
+  }
+  function hide() {
+    if (!panel) init();
+    panel.classList.add('idle');
+  }
+  function dismiss() { hide(); setBusy(false); }
+
+  function setStage(stage) {
+    if (!panel) init();
+    currentStage = stage;
+    // Update pills
+    const pills = stagesEl.querySelectorAll('.stage-pill');
+    const order = ['upload', 'analyze', 'apply', 'export'];
+    const stageIdx = order.indexOf(stage);
+    pills.forEach(p => {
+      const ps = p.dataset.stage;
+      const idx = order.indexOf(ps);
+      p.classList.remove('active', 'done');
+      if (idx < stageIdx) p.classList.add('done');
+      else if (idx === stageIdx) p.classList.add('active');
+    });
+    // Update title
+    const titles = {
+      upload:  ['📤', 'Uploading…'],
+      analyze: ['🔍', 'Analyzing…'],
+      apply:   ['✨', 'Applying Fixes…'],
+      export:  ['📤', 'Generating PDF…'],
+    };
+    const t = titles[stage] || ['⏳', 'Processing…'];
+    icon.textContent = t[0];
+    title.textContent = t[1];
+  }
+
+  function setProgress(pct, message) {
+    if (!panel) init();
+    if (pct < 0) {
+      // Indeterminate
+      barFill.classList.add('indeterminate');
+      barFill.style.width = '30%';
+    } else {
+      barFill.classList.remove('indeterminate');
+      barFill.style.width = Math.max(0, Math.min(100, pct)) + '%';
+    }
+    if (message) msg.textContent = message;
+  }
+
+  function setMessage(message) {
+    if (!panel) init();
+    msg.textContent = message;
+  }
+
+  function setSubMessage(text) {
+    if (!panel) init();
+    let sub = extraEl.querySelector('.sub-msg');
+    if (!sub) {
+      sub = document.createElement('div');
+      sub.className = 'sub-msg';
+      sub.style.cssText = 'font-size: 12px; color: #888; margin-top: 6px;';
+      extraEl.appendChild(sub);
+    }
+    sub.textContent = text;
+  }
+
+  function success(message) {
+    if (!panel) init();
+    icon.textContent = '✅';
+    title.textContent = 'Completed';
+    msg.textContent = message || 'Done!';
+    barFill.classList.remove('indeterminate');
+    barFill.style.width = '100%';
+    if (cancelBtn) cancelBtn.style.display = 'none';
+    if (dismissBtn) dismissBtn.style.display = 'inline-block';
+    // Show success banner
+    const banner = document.createElement('div');
+    banner.className = 'success-banner';
+    banner.textContent = '✓ ' + (message || 'Operation completed successfully');
+    extraEl.innerHTML = '';
+    extraEl.appendChild(banner);
+    setBusy(false);
+  }
+
+  function error(message) {
+    if (!panel) init();
+    icon.textContent = '❌';
+    title.textContent = 'Error';
+    msg.textContent = message || 'Something went wrong';
+    if (cancelBtn) cancelBtn.style.display = 'none';
+    if (dismissBtn) dismissBtn.style.display = 'inline-block';
+    const banner = document.createElement('div');
+    banner.className = 'error-banner';
+    banner.textContent = '✗ ' + (message || 'Operation failed');
+    extraEl.innerHTML = '';
+    extraEl.appendChild(banner);
+    setBusy(false);
+  }
+
+  function cancel() {
+    isCancelled = true;
+    if (onCancelHandler) {
+      try { onCancelHandler(); } catch (e) {}
+    }
+    icon.textContent = '⊘';
+    title.textContent = 'Cancelled';
+    msg.textContent = 'Operation cancelled';
+    if (cancelBtn) cancelBtn.style.display = 'none';
+    if (dismissBtn) dismissBtn.style.display = 'inline-block';
+    setBusy(false);
+  }
+
+  function onCancel(handler) { onCancelHandler = handler; }
+  function cancelled() { return isCancelled; }
+
+  // Disable/enable action buttons during processing
+  const BUSY_BUTTONS = [
+    'enhAutoFixBtn', 'runAnalysisBtn', 'enhExportBtn',
+    'enhResetBtn', 'enhToggleCompareBtn', 'enhDownloadOriginalBtn',
+    'applySelectedFixesBtn', 'fixesSelectAll', 'fixesClearAll'
+  ];
+  function setBusy(busy) {
+    BUSY_BUTTONS.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        if (busy) el.classList.add('btn-busy');
+        else el.classList.remove('btn-busy');
+      }
+    });
+    // Also disable all preset buttons during processing
+    document.querySelectorAll('.preset-btn').forEach(b => {
+      if (busy) b.classList.add('btn-busy');
+      else b.classList.remove('btn-busy');
+    });
+    // Also disable all enhancement category checkboxes
+    document.querySelectorAll('#enhSelectionSection input[type=checkbox]').forEach(cb => {
+      cb.disabled = !!busy;
+    });
+  }
+
+  return { init, show, hide, dismiss, setStage, setProgress, setMessage, setSubMessage, success, error, cancel, onCancel, cancelled, setBusy };
+})();
+
+// Init progress on load
+document.addEventListener('DOMContentLoaded', () => Progress.init());
 
 // ---------- Magic Presets ----------
 // Each preset is a function that mutates processedCanvas in-place from originalCanvas.
@@ -3125,6 +3692,664 @@ document.querySelectorAll('.preset-btn').forEach(btn => {
   btn.addEventListener('click', () => applyPreset(btn.dataset.preset));
 });
 
+// =============================================================
+//   APPLY SELECTED FIXES
+//   Reads all checked options in the enhancement categories,
+//   runs them in order, with progress feedback.
+//   Supports both image and PDF input/output.
+// =============================================================
+
+// Map of fix ID -> { label, run(src, dst, progress) }
+const FIX_REGISTRY = {
+  // Resolution
+  'fx-upscale2x':  { label: 'AI Upscale 2x',  group: 'Resolution',  run: (s, d, p) => studioApplyAIUpscale(d, 2) },
+  'fx-upscale3x':  { label: 'AI Upscale 3x',  group: 'Resolution',  run: (s, d, p) => studioApplyAIUpscale(d, 3) },
+  'fx-upscale4x':  { label: 'AI Upscale 4x',  group: 'Resolution',  run: (s, d, p) => studioApplyAIUpscale(d, 4) },
+  'fx-upscale8x':  { label: 'AI Upscale 8x',  group: 'Resolution',  run: (s, d, p) => studioApplyAIUpscale(d, 8) },
+  // Sharpness
+  'fx-smartSharpen': { label: 'Smart Sharpen', group: 'Sharpness', run: (s, d) => studioApplySharpen(d, 0.5) },
+  'fx-sharpenText':   { label: 'Sharpen Text',  group: 'Sharpness', run: (s, d) => studioApplySharpen(d, 0.7) },
+  // Noise
+  'fx-aiDenoise':     { label: 'AI Denoise',         group: 'Noise', run: (s, d) => studioApplyDenoise(d, 0.5) },
+  'fx-removeJpeg':    { label: 'Remove JPEG',        group: 'Noise', run: (s, d) => studioApplyDenoise(d, 0.3) },
+  'fx-removeGrain':   { label: 'Remove Grain',       group: 'Noise', run: (s, d) => studioApplyDenoise(d, 0.4) },
+  // Color
+  'fx-whiteBalance': { label: 'Auto White Balance', group: 'Color', run: (s, d) => studioApplyAutoExposure(d) },
+  'fx-autoExposure': { label: 'Auto Exposure',      group: 'Color', run: (s, d) => studioApplyAutoExposure(d) },
+  'fx-contrast':     { label: 'Contrast',           group: 'Color', run: (s, d) => studioApplyContrast(d, 0.3) },
+  'fx-vibrance':     { label: 'Vibrance',           group: 'Color', run: (s, d) => studioApplyVibrance(d, 0.4) },
+  'fx-saturation':   { label: 'Saturation',         group: 'Color', run: (s, d) => studioApplySaturation(d, 0.3) },
+  'fx-gamma':        { label: 'Gamma',              group: 'Color', run: (s, d) => studioApplyGamma(d, 1.2) },
+  // Document
+  'fx-deskew':        { label: 'Deskew',         group: 'Document', run: (s, d) => {} }, // placeholder
+  'fx-removeYellow':  { label: 'Remove Yellow',  group: 'Document', run: (s, d) => studioApplyWhitenPaper(d) },
+  'fx-whitenPaper':   { label: 'Whiten Paper',   group: 'Document', run: (s, d) => studioApplyWhitenPaper(d) },
+  // Background (only enabled ones)
+  'fx-transparentPng': { label: 'Transparent PNG', group: 'Background', run: (s, d) => {} },
+  'fx-expandCanvas':   { label: 'Expand Canvas',   group: 'Background', run: (s, d) => {} },
+};
+
+// Update the count of selected fixes whenever a checkbox changes
+function updateFixesCount() {
+  const cbs = document.querySelectorAll('#enhSelectionSection input[type=checkbox]');
+  let count = 0;
+  cbs.forEach(cb => { if (cb.checked && !cb.disabled) count++; });
+  const countEl = document.getElementById('fixesCount');
+  const textEl = document.getElementById('fixesCountText');
+  const applyBtn = document.getElementById('applySelectedFixesBtn');
+  if (countEl) countEl.textContent = count;
+  if (textEl) textEl.textContent = count === 0 ? 'No fixes selected' : count === 1 ? 'fix selected' : 'fixes selected';
+  if (applyBtn) applyBtn.disabled = count === 0;
+}
+
+// Wire up checkbox changes
+document.querySelectorAll('#enhSelectionSection input[type=checkbox]').forEach(cb => {
+  cb.addEventListener('change', updateFixesCount);
+});
+
+// Select All / Clear All
+document.getElementById('fixesSelectAll')?.addEventListener('click', () => {
+  document.querySelectorAll('#enhSelectionSection input[type=checkbox]').forEach(cb => {
+    if (!cb.disabled) cb.checked = true;
+  });
+  updateFixesCount();
+});
+document.getElementById('fixesClearAll')?.addEventListener('click', () => {
+  document.querySelectorAll('#enhSelectionSection input[type=checkbox]').forEach(cb => {
+    if (!cb.disabled) cb.checked = false;
+  });
+  updateFixesCount();
+});
+
+// Initialize count
+setTimeout(updateFixesCount, 100);
+
+// --- New color primitives needed by the fix registry ---
+function studioApplyVibrance(canvas, amount) {
+  const ctx = canvas.getContext('2d');
+  const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const data = img.data;
+  for (let i = 0; i < data.length; i += 4) {
+    const max = Math.max(data[i], data[i+1], data[i+2]);
+    const min = Math.min(data[i], data[i+1], data[i+2]);
+    const sat = max === 0 ? 0 : (max - min) / max;
+    // Vibrance: more boost for low-saturation pixels
+    const boost = amount * (1 - sat);
+    const avg = (data[i] + data[i+1] + data[i+2]) / 3;
+    data[i]   = Math.max(0, Math.min(255, avg + (data[i]   - avg) * (1 + boost)));
+    data[i+1] = Math.max(0, Math.min(255, avg + (data[i+1] - avg) * (1 + boost)));
+    data[i+2] = Math.max(0, Math.min(255, avg + (data[i+2] - avg) * (1 + boost)));
+  }
+  ctx.putImageData(img, 0, 0);
+}
+
+function studioApplySaturation(canvas, amount) {
+  const ctx = canvas.getContext('2d');
+  const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const data = img.data;
+  const f = 1 + amount;
+  for (let i = 0; i < data.length; i += 4) {
+    const avg = (data[i] + data[i+1] + data[i+2]) / 3;
+    data[i]   = Math.max(0, Math.min(255, avg + (data[i]   - avg) * f));
+    data[i+1] = Math.max(0, Math.min(255, avg + (data[i+1] - avg) * f));
+    data[i+2] = Math.max(0, Math.min(255, avg + (data[i+2] - avg) * f));
+  }
+  ctx.putImageData(img, 0, 0);
+}
+
+function studioApplyGamma(canvas, gamma) {
+  const ctx = canvas.getContext('2d');
+  const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const data = img.data;
+  const inv = 1 / gamma;
+  for (let i = 0; i < data.length; i += 4) {
+    data[i]   = Math.max(0, Math.min(255, Math.pow(data[i]   / 255, inv) * 255));
+    data[i+1] = Math.max(0, Math.min(255, Math.pow(data[i+1] / 255, inv) * 255));
+    data[i+2] = Math.max(0, Math.min(255, Math.pow(data[i+2] / 255, inv) * 255));
+  }
+  ctx.putImageData(img, 0, 0);
+}
+
+function studioApplyWhitenPaper(canvas) {
+  const ctx = canvas.getContext('2d');
+  const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const data = img.data;
+  for (let i = 0; i < data.length; i += 4) {
+    // Lift minimums to whiten
+    data[i]   = data[i]   * 0.7 + 76;
+    data[i+1] = data[i+1] * 0.7 + 76;
+    data[i+2] = data[i+2] * 0.7 + 76;
+  }
+  ctx.putImageData(img, 0, 0);
+}
+
+// Main entry: Apply Selected Fixes
+async function applySelectedFixes() {
+  if (!currentFile) {
+    showMessage('⚠️ Upload an image first.', 'error');
+    return;
+  }
+  if (typeof pdfDoc !== 'undefined' && pdfDoc && currentFile?.type === 'application/pdf') {
+    await applySelectedFixesToPDF();
+    return;
+  }
+  await applySelectedFixesToImage();
+}
+
+async function applySelectedFixesToImage() {
+  // Read selected fixes
+  const selected = [];
+  document.querySelectorAll('#enhSelectionSection input[type=checkbox]').forEach(cb => {
+    if (cb.checked && !cb.disabled && FIX_REGISTRY[cb.id]) {
+      selected.push({ id: cb.id, ...FIX_REGISTRY[cb.id] });
+    }
+  });
+  if (!selected.length) { showMessage('⚠️ No fixes selected.', 'error'); return; }
+
+  // Reset processed canvas to original
+  processedCanvas.width = originalCanvas.width;
+  processedCanvas.height = originalCanvas.height;
+  processedCtx.drawImage(originalCanvas, 0, 0);
+
+  // Start progress
+  Progress.show();
+  Progress.setBusy(true);
+  Progress.setStage('apply');
+  Progress.setMessage(`Applying ${selected.length} fix${selected.length > 1 ? 'es' : ''}...`);
+
+  try {
+    for (let i = 0; i < selected.length; i++) {
+      if (Progress.cancelled()) {
+        showMessage('⊘ Cancelled', 'info', 2000);
+        Progress.hide();
+        return;
+      }
+      const fix = selected[i];
+      const pct = ((i) / selected.length) * 100;
+      Progress.setProgress(pct, `[${i + 1}/${selected.length}] ${fix.label}`);
+      // The fix mutates processedCanvas
+      try {
+        await fix.run(originalCanvas, processedCanvas);
+      } catch (e) {
+        console.error(`Fix ${fix.id} failed:`, e);
+        Progress.setSubMessage(`⚠ ${fix.label} failed: ${e.message}`);
+      }
+    }
+    Progress.setProgress(100, 'All fixes applied');
+    Progress.success(`✨ ${selected.length} fix${selected.length > 1 ? 'es' : ''} applied successfully!`);
+    showCompareStudio();
+    showMessage(`✅ Applied ${selected.length} fix${selected.length > 1 ? 'es' : ''}`, 'success');
+    // Scroll to compare
+    document.getElementById('enhCompareSection')?.scrollIntoView({ behavior: 'smooth' });
+  } catch (e) {
+    console.error('Apply fixes failed:', e);
+    Progress.error(e.message);
+    showMessage('❌ Failed: ' + e.message, 'error');
+  }
+}
+
+// PDF handling
+async function applySelectedFixesToPDF() {
+  if (!pdfDoc) { showMessage('⚠️ No PDF loaded', 'error'); return; }
+  const selected = [];
+  document.querySelectorAll('#enhSelectionSection input[type=checkbox]').forEach(cb => {
+    if (cb.checked && !cb.disabled && FIX_REGISTRY[cb.id]) {
+      selected.push({ id: cb.id, ...FIX_REGISTRY[cb.id] });
+    }
+  });
+  if (!selected.length) { showMessage('⚠️ No fixes selected.', 'error'); return; }
+
+  Progress.show();
+  Progress.setBusy(true);
+  Progress.setStage('apply');
+  Progress.setMessage(`Processing ${totalPages} page(s) of PDF...`);
+
+  try {
+    // Store enhanced page canvases for export
+    enhancedPages = [];
+    for (let p = 1; p <= totalPages; p++) {
+      if (Progress.cancelled()) {
+        Progress.hide();
+        return;
+      }
+      const pct = ((p - 1) / totalPages) * 100;
+      Progress.setProgress(pct, `Rendering page ${p}/${totalPages}...`);
+      const page = await pdfDoc.getPage(p);
+      const viewport = page.getViewport({ scale: 2 });
+      const renderCanvas = document.createElement('canvas');
+      renderCanvas.width = viewport.width;
+      renderCanvas.height = viewport.height;
+      const rctx = renderCanvas.getContext('2d');
+      await page.render({ canvasContext: rctx, viewport }).promise;
+
+      // Apply selected fixes to this page
+      // Set as both original and processed so the fix pipeline works
+      const origW = originalCanvas.width, origH = originalCanvas.height;
+      const origDims = originalDimensions;
+      originalCanvas.width = renderCanvas.width;
+      originalCanvas.height = renderCanvas.height;
+      originalCtx.drawImage(renderCanvas, 0, 0);
+      processedCanvas.width = renderCanvas.width;
+      processedCanvas.height = renderCanvas.height;
+      processedCtx.drawImage(renderCanvas, 0, 0);
+      originalDimensions = { width: renderCanvas.width, height: renderCanvas.height };
+
+      Progress.setSubMessage(`Applying ${selected.length} fix${selected.length > 1 ? 'es' : ''} to page ${p}...`);
+      for (let i = 0; i < selected.length; i++) {
+        const fix = selected[i];
+        Progress.setProgress(pct + (i / selected.length) * (100 / totalPages), `Page ${p}/${totalPages}: ${fix.label}`);
+        try { await fix.run(originalCanvas, processedCanvas); }
+        catch (e) { console.error(`Fix ${fix.id} failed:`, e); }
+      }
+      // Snapshot the processed page
+      enhancedPages.push({
+        canvas: processedCanvas,
+        width: processedCanvas.width,
+        height: processedCanvas.height,
+      });
+    }
+    // Restore original canvas to the first page (for UI preview)
+    Progress.setProgress(100, 'All pages processed');
+    Progress.success(`✨ ${selected.length} fix${selected.length > 1 ? 'es' : ''} applied to ${totalPages} page(s)`);
+    showMessage(`✅ PDF processed. Use Export → PDF to download.`, 'success', 4000);
+    document.getElementById('enhExportSection')?.scrollIntoView({ behavior: 'smooth' });
+  } catch (e) {
+    console.error('PDF apply failed:', e);
+    Progress.error(e.message);
+    showMessage('❌ PDF processing failed: ' + e.message, 'error');
+  }
+}
+
+let enhancedPages = []; // Array of { canvas, width, height } for PDF export
+
+// PDF Export
+async function exportAsPDF() {
+  if (typeof PDFLib === 'undefined') {
+    showMessage('❌ PDF library not loaded', 'error');
+    return;
+  }
+  Progress.show();
+  Progress.setStage('export');
+  Progress.setBusy(true);
+  Progress.setMessage('Generating PDF...');
+
+  try {
+    const { PDFDocument } = PDFLib;
+    const pdfDoc = await PDFDocument.create();
+
+    if (enhancedPages && enhancedPages.length > 0) {
+      // Export each enhanced page
+      for (let i = 0; i < enhancedPages.length; i++) {
+        if (Progress.cancelled()) { Progress.hide(); return; }
+        const page = enhancedPages[i];
+        const blob = await new Promise(r => page.canvas.toBlob(r, 'image/png'));
+        const bytes = new Uint8Array(await blob.arrayBuffer());
+        const img = await pdfDoc.embedPng(bytes);
+        // Create page matching image aspect ratio (preserve original size)
+        const pdfPage = pdfDoc.addPage([page.width, page.height]);
+        pdfPage.drawImage(img, { x: 0, y: 0, width: page.width, height: page.height });
+        Progress.setProgress(((i + 1) / enhancedPages.length) * 100,
+          `Adding page ${i + 1}/${enhancedPages.length}...`);
+      }
+    } else {
+      // Single image export
+      const blob = await new Promise(r => processedCanvas.toBlob(r, 'image/png'));
+      const bytes = new Uint8Array(await blob.arrayBuffer());
+      const img = await pdfDoc.embedPng(bytes);
+      const pdfPage = pdfDoc.addPage([processedCanvas.width, processedCanvas.height]);
+      pdfPage.drawImage(img, { x: 0, y: 0, width: processedCanvas.width, height: processedCanvas.height });
+      Progress.setProgress(100, 'Adding page...');
+    }
+
+    Progress.setMessage('Saving PDF...');
+    const pdfBytes = await pdfDoc.save();
+    const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    const baseName = (currentFile?.name || 'export').replace(/\.[^.]+$/, '');
+    a.download = `${baseName}_enhanced.pdf`;
+    a.click();
+    Progress.success(`📄 PDF exported (${formatBytes(blob.size)})`);
+    showMessage('📥 PDF downloaded', 'success', 2000);
+  } catch (e) {
+    console.error('PDF export failed:', e);
+    Progress.error(e.message);
+    showMessage('❌ PDF export failed: ' + e.message, 'error');
+  }
+}
+
+// Wire up Apply Selected Fixes button
+document.getElementById('applySelectedFixesBtn')?.addEventListener('click', applySelectedFixes);
+
+// =============================================================
+//   PREVIEW MODE — apply one fix at a time, with undo
+//   Each fix in the categories has a small "▶" Try button.
+//   Clicking it applies just that fix to the processed canvas,
+//   pushes to a stack, and shows the result in before/after.
+//   Undo Last reverts the most recent preview.
+//   Reset reverts all previews to the original.
+//   Commit keeps the previewed state as the new baseline.
+// =============================================================
+
+const previewStack = []; // { fixId, label, snapshotCanvas }[]
+
+function getPreviewControls() {
+  return {
+    container: document.getElementById('previewControls'),
+    info:      document.getElementById('previewStackInfo'),
+    undo:      document.getElementById('undoLastPreviewBtn'),
+    reset:     document.getElementById('resetAllPreviewsBtn'),
+    commit:    document.getElementById('commitPreviewsBtn'),
+  };
+}
+
+function showPreviewControls() {
+  const c = getPreviewControls();
+  if (c.container) c.container.style.display = 'flex';
+}
+
+function updatePreviewUI() {
+  const c = getPreviewControls();
+  if (!c.container) return;
+  // Show controls if we have any previews OR if a try was clicked
+  if (previewStack.length === 0) {
+    c.info.textContent = 'none';
+    c.undo.disabled = true;
+    c.reset.disabled = true;
+    c.commit.disabled = true;
+  } else {
+    const last = previewStack[previewStack.length - 1];
+    c.info.textContent = `${previewStack.length} applied · last: ${last.label}`;
+    c.undo.disabled = false;
+    c.reset.disabled = false;
+    c.commit.disabled = false;
+  }
+  // Render the step diff indicator + history
+  renderStepDiff();
+}
+
+function renderStepDiff() {
+  // Find or create the step-diff container right after the preview controls
+  let diffBox = document.getElementById('stepDiffBox');
+  if (!diffBox) {
+    diffBox = document.createElement('div');
+    diffBox.id = 'stepDiffBox';
+    const previewControls = document.getElementById('previewControls');
+    if (previewControls && previewControls.parentNode) {
+      previewControls.parentNode.insertBefore(diffBox, previewControls.nextSibling);
+    }
+  }
+  if (previewStack.length === 0) {
+    diffBox.innerHTML = '';
+    return;
+  }
+  // Last step diff
+  const last = previewStack[previewStack.length - 1];
+  const lastDelta = last.diff || { pixelsChanged: 0, avgIntensityChange: 0 };
+  // Cumulative diff from original
+  const cumDiff = computeCumulativeDiff();
+  const cumDelta = cumDiff || { pixelsChanged: 0, avgIntensityChange: 0 };
+  // Render
+  const lastClass = lastDelta.pixelsChanged > 5 ? 'delta-big' : (lastDelta.pixelsChanged > 0.1 ? 'delta' : 'delta-zero');
+  diffBox.innerHTML = `
+    <div class="step-diff">
+      <span>Last step <strong>${last.label}</strong>:</span>
+      <span class="${lastClass}">\u0394 +${lastDelta.pixelsChanged.toFixed(1)}%</span>
+      <span class="intensity-bar" title="Average pixel intensity change">
+        <span class="intensity-bar-fill" style="width: ${Math.min(100, lastDelta.avgIntensityChange * 2)}%"></span>
+      </span>
+      <span style="color:#888; font-size: 11px;">${lastDelta.avgIntensityChange.toFixed(1)} intensity</span>
+      <span style="margin-left: 8px; color: #555;">|</span>
+      <span style="color:#4a4a6e; font-weight: 600;">Total \u0394 +${cumDelta.pixelsChanged.toFixed(1)}%</span>
+      <button class="toggle-diff-btn ${showDiffOverlay ? 'active' : ''}" id="toggleDiffBtn">${showDiffOverlay ? '\u25c9 Hide Heatmap' : '\u25d0 Show Heatmap'}</button>
+    </div>
+    <div class="step-history">
+      ${previewStack.map((step, i) => {
+        const d = step.diff || { pixelsChanged: 0 };
+        return `<div class="step-item">
+          <span class="step-num">${i + 1}</span>
+          <span class="step-label">${step.label}</span>
+          <span class="step-delta">\u0394 +${d.pixelsChanged.toFixed(1)}%</span>
+        </div>`;
+      }).join('')}
+    </div>
+  `;
+  // Wire the toggle button (re-created each render)
+  const toggleBtn = document.getElementById('toggleDiffBtn');
+  if (toggleBtn) toggleBtn.addEventListener('click', toggleDiffOverlay);
+}
+
+// =============================================================
+//   STEP DIFF
+//   Compare each preview step with the previous state.
+//   Returns: { pixelsChanged, avgIntensityChange, diffImageData }
+// =============================================================
+
+function computeCanvasDiff(prevCanvas, currCanvas) {
+  const result = { pixelsChanged: 0, avgIntensityChange: 0, diffImageData: null };
+  if (!prevCanvas || !currCanvas) return result;
+  if (prevCanvas.width !== currCanvas.width || prevCanvas.height !== currCanvas.height) {
+    return result;
+  }
+  const w = currCanvas.width;
+  const h = currCanvas.height;
+  const prevCtx = prevCanvas.getContext('2d');
+  const currCtx = currCanvas.getContext('2d');
+  const prevData = prevCtx.getImageData(0, 0, w, h).data;
+  const currData = currCtx.getImageData(0, 0, w, h).data;
+  const diffData = new Uint8ClampedArray(currData.length);
+  const threshold = 6; // ignore tiny per-pixel noise
+  let changed = 0;
+  let totalDiff = 0;
+  for (let i = 0; i < currData.length; i += 4) {
+    const dr = currData[i]     - prevData[i];
+    const dg = currData[i + 1] - prevData[i + 1];
+    const db = currData[i + 2] - prevData[i + 2];
+    const maxDiff = Math.max(Math.abs(dr), Math.abs(dg), Math.abs(db));
+    if (maxDiff > threshold) {
+      changed++;
+      // Visualize: red intensity proportional to the diff
+      const intensity = Math.min(255, maxDiff * 2);
+      diffData[i]     = intensity;     // R
+      diffData[i + 1] = intensity * 0.3; // G (faint)
+      diffData[i + 2] = intensity * 0.3; // B (faint)
+      diffData[i + 3] = Math.min(255, maxDiff * 1.5); // A
+    } else {
+      // No change — fully transparent
+      diffData[i] = diffData[i + 1] = diffData[i + 2] = diffData[i + 3] = 0;
+    }
+    totalDiff += maxDiff;
+  }
+  const totalPixels = w * h;
+  result.pixelsChanged = (changed / totalPixels) * 100;
+  result.avgIntensityChange = totalDiff / totalPixels;
+  result.diffImageData = diffData;
+  return result;
+}
+
+// Cumulative diff from original
+function computeCumulativeDiff() {
+  if (!previewStack.length) return null;
+  if (!originalCanvas.width) return null;
+  return computeCanvasDiff(originalCanvas, processedCanvas);
+}
+
+// Render the diff overlay if the toggle is active
+let showDiffOverlay = false;
+function renderDiffIfActive() {
+  const diffCanvas = document.getElementById('enhDiffCanvas');
+  if (!diffCanvas) return;
+  if (!showDiffOverlay) {
+    diffCanvas.style.display = 'none';
+    return;
+  }
+  const diff = computeCumulativeDiff();
+  if (!diff || !diff.diffImageData) {
+    diffCanvas.style.display = 'none';
+    return;
+  }
+  diffCanvas.width = processedCanvas.width;
+  diffCanvas.height = processedCanvas.height;
+  const ctx = diffCanvas.getContext('2d');
+  const imgData = ctx.createImageData(processedCanvas.width, processedCanvas.height);
+  imgData.data.set(diff.diffImageData);
+  ctx.putImageData(imgData, 0, 0);
+  diffCanvas.style.display = 'block';
+}
+
+function toggleDiffOverlay() {
+  showDiffOverlay = !showDiffOverlay;
+  const btn = document.getElementById('enhDiffToggleBtn');
+  if (btn) {
+    btn.textContent = showDiffOverlay ? '◉ Hide Diff' : '◐ Show Diff';
+    btn.classList.toggle('active', showDiffOverlay);
+  }
+  renderDiffIfActive();
+}
+
+function tryOneFix(fixId) {
+  const fix = FIX_REGISTRY[fixId];
+  if (!fix) {
+    showMessage(`⚠️ Unknown fix: ${fixId}`, 'error');
+    return;
+  }
+  if (!currentFile || !originalCanvas.width) {
+    showMessage('⚠️ Upload an image first.', 'error');
+    return;
+  }
+  // Snapshot the PREVIOUS state (for diff calculation)
+  const prevSnap = document.createElement('canvas');
+  prevSnap.width = processedCanvas.width;
+  prevSnap.height = processedCanvas.height;
+  prevSnap.getContext('2d').drawImage(processedCanvas, 0, 0);
+  // Also snapshot for undo
+  const undoSnap = document.createElement('canvas');
+  undoSnap.width = processedCanvas.width;
+  undoSnap.height = processedCanvas.height;
+  undoSnap.getContext('2d').drawImage(processedCanvas, 0, 0);
+  // Apply the single fix
+  try {
+    const result = fix.run(originalCanvas, processedCanvas);
+    if (result instanceof Promise) {
+      // For async fixes (e.g. AI upscale), show a quick status
+      showMessage(`⏳ Applying ${fix.label}...`, 'info', 1500);
+      result.then(() => {
+        const diff = computeCanvasDiff(prevSnap, processedCanvas);
+        previewStack.push({
+          fixId, label: fix.label,
+          snapshot: undoSnap,
+          prevSnapshot: prevSnap,
+          diff
+        });
+        showCompareStudio();
+        updatePreviewUI();
+        // Mark the Try button as applied
+        const btn = document.querySelector(`.opt-try[data-fix="${fixId}"]`);
+        if (btn) btn.classList.add('applied');
+        renderDiffIfActive();
+        showMessage(`✅ ${fix.label} · Δ +${diff.pixelsChanged.toFixed(1)}% pixels`, 'success', 2000);
+      }).catch(e => {
+        showMessage(`❌ ${fix.label} failed: ${e.message}`, 'error');
+      });
+      return;
+    }
+  } catch (e) {
+    showMessage(`❌ ${fix.label} failed: ${e.message}`, 'error');
+    return;
+  }
+  // Sync (non-async) fix done immediately
+  const diff = computeCanvasDiff(prevSnap, processedCanvas);
+  previewStack.push({
+    fixId, label: fix.label,
+    snapshot: undoSnap,
+    prevSnapshot: prevSnap,
+    diff
+  });
+  showCompareStudio();
+  updatePreviewUI();
+  // Mark the Try button as applied
+  const btn = document.querySelector(`.opt-try[data-fix="${fixId}"]`);
+  if (btn) btn.classList.add('applied');
+  renderDiffIfActive();
+  showMessage(`✅ ${fix.label} · Δ +${diff.pixelsChanged.toFixed(1)}% pixels`, 'success', 2000);
+}
+
+function undoLastPreview() {
+  if (!previewStack.length) return;
+  const last = previewStack.pop();
+  // Restore snapshot
+  processedCanvas.width = last.snapshot.width;
+  processedCanvas.height = last.snapshot.height;
+  processedCtx.drawImage(last.snapshot, 0, 0);
+  // Unmark the Try button if it was the last applied
+  const btn = document.querySelector(`.opt-try[data-fix="${last.fixId}"]`);
+  if (btn) btn.classList.remove('applied');
+  showCompareStudio();
+  updatePreviewUI();
+  showMessage(`↶ Undid ${last.label}`, 'info', 1500);
+}
+
+function resetAllPreviews() {
+  if (!previewStack.length && processedCanvas.width === originalCanvas.width) return;
+  processedCanvas.width = originalCanvas.width;
+  processedCanvas.height = originalCanvas.height;
+  processedCtx.drawImage(originalCanvas, 0, 0);
+  // Clear all applied marks
+  document.querySelectorAll('.opt-try.applied').forEach(b => b.classList.remove('applied'));
+  previewStack.length = 0;
+  showCompareStudio();
+  updatePreviewUI();
+  showMessage('↻ Reset to original', 'info', 1500);
+}
+
+function commitPreviews() {
+  if (!previewStack.length) {
+    showMessage('⚠️ No previews to commit', 'error');
+    return;
+  }
+  // The current processedCanvas is the new baseline.
+  // We keep the canvas state but clear the preview markers.
+  const count = previewStack.length;
+  document.querySelectorAll('.opt-try.applied').forEach(b => b.classList.remove('applied'));
+  previewStack.length = 0;
+  // Reset to the current processedCanvas state as the new "original" for the next round
+  // (so the user can continue previewing more fixes on top)
+  // Actually: we want to keep the previewed state visible, so don't reset to original.
+  // Just update the info.
+  updatePreviewUI();
+  showMessage(`✓ Committed ${count} previews. You can keep trying more or export.`, 'success', 3000);
+}
+
+// Wire up preview controls
+document.getElementById('undoLastPreviewBtn')?.addEventListener('click', undoLastPreview);
+document.getElementById('resetAllPreviewsBtn')?.addEventListener('click', resetAllPreviews);
+document.getElementById('commitPreviewsBtn')?.addEventListener('click', commitPreviews);
+
+// Inject a small "▶ Try" button into each non-disabled enhancement option
+function injectTryButtons() {
+  document.querySelectorAll('#enhSelectionSection .opt input[type=checkbox]').forEach(cb => {
+    if (cb.disabled) return; // skip disabled AI Repair options
+    const opt = cb.closest('.opt');
+    if (!opt) return;
+    if (opt.querySelector('.opt-try')) return; // already injected
+    const fixId = cb.id;
+    if (!FIX_REGISTRY[fixId]) return; // skip options without a fix implementation
+    const btn = document.createElement('button');
+    btn.className = 'opt-try';
+    btn.textContent = '▶';
+    btn.title = `Preview ${FIX_REGISTRY[fixId].label}`;
+    btn.dataset.fix = fixId;
+    btn.addEventListener('click', e => {
+      e.preventDefault();
+      e.stopPropagation();
+      tryOneFix(fixId);
+    });
+    opt.appendChild(btn);
+  });
+}
+
+injectTryButtons();
+
 // ---------- Reset / Toggle / Download Original ----------
 document.getElementById('enhResetBtn')?.addEventListener('click', () => {
   if (!originalCanvas.width) return;
@@ -3264,6 +4489,9 @@ document.querySelectorAll('#enhZoomToolbar button').forEach(b => {
     applyZoom();
   });
 });
+
+// Wire the Show Diff button in the zoom toolbar
+document.getElementById('enhDiffToggleBtn')?.addEventListener('click', toggleDiffOverlay);
 
 // Reset zoom when new compare is shown
 // (We append the zoom-reset logic directly to showCompareStudio below
