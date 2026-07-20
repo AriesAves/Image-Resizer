@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🎨 AI Image Studio — Full-Page Editor</title>
+  <style>
+    * { box-sizing: border-box; }
+    body, html { margin: 0; padding: 0; height: 100%; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #1a1a2e;
+      color: #e8e8f0;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    /* Top toolbar */
+    .topbar {
+      background: linear-gradient(135deg, #2a2a4e, #1a1a2e);
+      border-bottom: 1px solid #3a3a5e;
+      padding: 10px 18px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+    .topbar h1 {
+      margin: 0;
+      font-size: 18px;
+      background: linear-gradient(45deg, #a78bfa, #f472b6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-weight: 700;
+    }
+    .topbar .spacer { flex: 1; }
+    .btn-tb {
+      background: linear-gradient(45deg, #4f46e5, #7c3aed);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .btn-tb:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3); }
+    .btn-tb:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .btn-tb.secondary { background: linear-gradient(45deg, #4b5563, #6b7280); }
+    .btn-tb.danger { background: linear-gradient(45deg, #dc2626, #ef4444); }
+
+    /* Main layout: sidebar + canvas area */
+    .main {
+      display: flex;
+      flex: 1;
+      min-height: 0;
+    }
+    .sidebar {
+      width: 320px;
+      background: #232342;
+      border-right: 1px solid #3a3a5e;
+      overflow-y: auto;
+      padding: 16px;
+    }
+    .section {
+      background: #2a2a4e;
+      border: 1px solid #3a3a5e;
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 14px;
+    }
+    .section h3 {
+      margin: 0 0 10px;
+      font-size: 14px;
+      color: #a78bfa;
+      font-weight: 600;
+    }
+    .section label {
+      display: block;
+      font-size: 12px;
+      color: #b0b0c8;
+      margin-bottom: 4px;
+      margin-top: 8px;
+    }
+    .section input, .section select {
+      width: 100%;
+      padding: 6px 8px;
+      background: #1a1a2e;
+      color: #e8e8f0;
+      border: 1px solid #4a4a6e;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+    .section input[type=range] { padding: 0; }
+    .section .value-label {
+      display: inline-block;
+      min-width: 36px;
+      text-align: right;
+      color: #f472b6;
+      font-weight: 600;
+    }
+    .row { display: flex; align-items: center; gap: 8px; }
+    .preset-list {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+    .preset-list button {
+      background: #1a1a2e;
+      border: 1px solid #4a4a6e;
+      border-radius: 6px;
+      padding: 8px 4px;
+      color: #e8e8f0;
+      cursor: pointer;
+      font-size: 11px;
+      transition: all 0.15s;
+    }
+    .preset-list button:hover { border-color: #a78bfa; background: #2a2a4e; }
+    .preset-list button.active { border-color: #f472b6; background: #3a2a4e; }
+
+    /* Canvas area */
+    .canvas-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: #0e0e1c;
+      position: relative;
+      overflow: hidden;
+    }
+    .canvas-stage {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 30px;
+      overflow: auto;
+    }
+    .canvas-frame {
+      max-width: 100%;
+      max-height: 100%;
+      box-shadow: 0 12px 36px rgba(0,0,0,0.5);
+      background: #fff;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .canvas-frame img { display: block; max-width: 100%; height: auto; }
+    .empty-state {
+      color: #6a6a8e;
+      text-align: center;
+      font-size: 16px;
+    }
+    .empty-state .icon { font-size: 64px; margin-bottom: 16px; }
+    /* Status bar */
+    .statusbar {
+      background: #1a1a2e;
+      border-top: 1px solid #3a3a5e;
+      padding: 6px 18px;
+      font-size: 12px;
+      color: #8888a8;
+      display: flex;
+      gap: 18px;
+    }
+    .statusbar .ok { color: #34d399; }
+    .statusbar .busy { color: #f59e0b; }
+    .statusbar .err { color: #f87171; }
+    /* Loading overlay */
+    .loading {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(14, 14, 28, 0.92);
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 10;
+    }
+    .loading.active { display: flex; }
+    .spinner {
+      width: 50px; height: 50px;
+      border: 4px solid #3a3a5e;
+      border-top-color: #a78bfa;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text { color: #e8e8f0; font-size: 14px; margin-bottom: 4px; }
+    .loading-sub { color: #8888a8; font-size: 12px; }
+    .progress-bar { width: 280px; height: 6px; background: #2a2a4e; border-radius: 3px; margin-top: 12px; overflow: hidden; }
+    .progress-bar-fill { height: 100%; background: linear-gradient(45deg, #a78bfa, #f472b6); width: 0; transition: width 0.2s; }
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 30px; left: 50%;
+      transform: translateX(-50%);
+      background: #2a2a4e;
+      color: #e8e8f0;
+      padding: 12px 20px;
+      border-radius: 24px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      border: 1px solid #4a4a6e;
+      font-size: 13px;
+      z-index: 100;
+      animation: slideUp 0.3s ease;
+    }
+    @keyframes slideUp { from { transform: translate(-50%, 20px); opacity: 0; } }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <h1>🎨 AI Image Studio</h1>
+    <span style="font-size: 12px; color: #8888a8;">Full-page editor with real neural networks</span>
+    <div class="spacer"></div>
+    <button class="btn-tb" id="loadBtn">📁 Load Image</button>
+    <button class="btn-tb" id="downloadBtn" disabled>💾 Download</button>
+    <button class="btn-tb secondary" id="resetBtn" disabled>↺ Reset</button>
+    <button class="btn-tb danger" id="backBtn">← Back</button>
+    <input type="file" id="fileInput" accept="image/*" style="display:none">
+  </div>
+
+  <div class="main">
+    <aside class="sidebar">
+      <div class="section">
+        <h3>🔬 AI Upscale</h3>
+        <label>Scale</label>
+        <select id="scale">
+          <option value="2">2x</option>
+          <option value="3">3x</option>
+          <option value="4" selected>4x</option>
+        </select>
+        <label>Model</label>
+        <select id="model">
+          <option value="esrgan-thick-2x">ESRGAN-Thick 2x (best photos)</option>
+          <option value="esrgan-thick-4x" selected>ESRGAN-Thick 4x (best photos)</option>
+          <option value="esrgan-medium-2x">ESRGAN-Medium 2x (artwork)</option>
+          <option value="esrgan-medium-4x">ESRGAN-Medium 4x (artwork)</option>
+          <option value="esrgan-slim-2x">ESRGAN-Slim 2x (fast)</option>
+        </select>
+        <button class="btn-tb" id="upscaleBtn" style="width:100%; margin-top: 10px;" disabled>🚀 Upscale</button>
+      </div>
+
+      <div class="section">
+        <h3>✨ Adjustments</h3>
+        <label>Brightness <span class="value-label" id="brightnessVal">0</span></label>
+        <input type="range" id="brightness" min="-100" max="100" value="0">
+
+        <label>Contrast <span class="value-label" id="contrastVal">0</span></label>
+        <input type="range" id="contrast" min="-100" max="100" value="0">
+
+        <label>Saturation <span class="value-label" id="saturationVal">0</span></label>
+        <input type="range" id="saturation" min="-100" max="100" value="0">
+
+        <label>Sharpness <span class="value-label" id="sharpnessVal">0</span></label>
+        <input type="range" id="sharpness" min="0" max="100" value="0">
+
+        <label>Denoise <span class="value-label" id="denoiseVal">0</span></label>
+        <input type="range" id="denoise" min="0" max="100" value="0">
+      </div>
+
+      <div class="section">
+        <h3>🎨 Magic Presets</h3>
+        <div class="preset-list" id="presets">
+          <button data-preset="portrait">👤 Portrait</button>
+          <button data-preset="landscape">🏔️ Landscape</button>
+          <button data-preset="oldphoto">📜 Old Photo</button>
+          <button data-preset="lowlight">🌙 Low Light</button>
+          <button data-preset="bw">🎞️ B&amp;W</button>
+          <button data-preset="vintage">🕶️ Vintage</button>
+          <button data-preset="sharpen">💎 Crystal</button>
+          <button data-preset="web">🌐 Web</button>
+        </div>
+      </div>
+    </aside>
+
+    <div class="canvas-area">
+      <div class="canvas-stage" id="stage">
+        <div class="empty-state" id="empty">
+          <div class="icon">🖼️</div>
+          <div>Drop an image here or click <strong>Load Image</strong></div>
+        </div>
+        <div class="canvas-frame" id="frame" style="display:none">
+          <canvas id="canvas"></canvas>
+        </div>
+      </div>
+      <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <div class="loading-text" id="loadingTitle">Working...</div>
+        <div class="loading-sub" id="loadingSub"></div>
+        <div class="progress-bar"><div class="progress-bar-fill" id="progressFill"></div></div>
+      </div>
+      <div class="statusbar">
+        <span>Status: <span id="statusText" class="ok">Ready</span></span>
+        <span id="dimText">No image</span>
+        <span id="zoomText" style="margin-left:auto">Zoom: 100%</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ============= STATE =============
+    const originalCanvas = document.createElement('canvas');
+    const originalCtx = originalCanvas.getContext('2d');
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const empty = document.getElementById('empty');
+    const frame = document.getElementById('frame');
+    let currentFile = null;
+    let activePreset = null;
+    let lastOperation = null; // for Reset
+
+    // ============= AI ENGINE (shared with main app) =============
+    const MODEL_URLS = {
+      'esrgan-thick-2x':  'https://cdn.jsdelivr.net/npm/@upscalerjs/esrgan-thick@1.0.0-beta.10/dist/umd/2x.min.js',
+      'esrgan-thick-3x':  'https://cdn.jsdelivr.net/npm/@upscalerjs/esrgan-thick@1.0.0-beta.10/dist/umd/3x.min.js',
+      'esrgan-thick-4x':  'https://cdn.jsdelivr.net/npm/@upscalerjs/esrgan-thick@1.0.0-beta.10/dist/umd/4x.min.js',
+      'esrgan-medium-2x': 'https://cdn.jsdelivr.net/npm/@upscalerjs/esrgan-medium@1.0.0-beta.10/dist/umd/2x.min.js',
+      'esrgan-medium-4x': 'https://cdn.jsdelivr.net/npm/@upscalerjs/esrgan-medium@1.0.0-beta.10/dist/umd/4x.min.js',
+      'esrgan-slim-2x':   'https://cdn.jsdelivr.net/npm/@upscalerjs/esrgan-slim@1.0.0-beta.10/dist/umd/2x.min.js',
+    };
+    const MODEL_LABELS = {
+      'esrgan-thick-2x': 'ESRGAN-Thick 2x', 'esrgan-thick-4x': 'ESRGAN-Thick 4x',
+      'esrgan-medium-2x': 'ESRGAN-Medium 2x', 'esrgan-medium-4x': 'ESRGAN-Medium 4x',
+      'esrgan-slim-2x': 'ESRGAN-Slim 2x',
+    };
+    let tfLoaded = false, upscalerLoaded = false, modelLoaded = new Set();
+
+    function injectScript(src) {
+      return new Promise((res, rej) => {
+        const existing = document.querySelector(`script[src="${src}"]`);
+        if (existing) { existing.dataset.loaded ? res() : (existing.addEventListener('load', res), existing.addEventListener('error', rej)); return; }
+        const s = document.createElement('script');
+        s.src = src; s.async = false;
+        s.onload = () => { s.dataset.loaded = '1'; res(); };
+        s.onerror = () => rej(new Error('Failed to load ' + src));
+        document.head.appendChild(s);
+      });
+    }
+    async function loadCore() {
+      if (!tfLoaded) {
+        setLoading('Loading TensorFlow.js...', '~1.5 MB');
+        await injectScript('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0/dist/tf.min.js');
+        await tf.ready();
+        tfLoaded = true;
+      }
+      if (!upscalerLoaded) {
+        setLoading('Loading UpscalerJS...', '~200 KB');
+        await injectScript('https://cdn.jsdelivr.net/npm/upscaler@1.0.0-beta.19/dist/browser/umd/upscaler.min.js');
+        upscalerLoaded = true;
+      }
+    }
+    async function loadModel(key) {
+      if (modelLoaded.has(key)) return;
+      setLoading('Loading model ' + MODEL_LABELS[key] + '...', '~30 MB, cached for next time');
+      await injectScript(MODEL_URLS[key]);
+      modelLoaded.add(key);
+    }
+
+    // ============= UI HELPERS =============
+    function setLoading(title, sub) {
+      document.getElementById('loadingTitle').textContent = title;
+      document.getElementById('loadingSub').textContent = sub || '';
+      document.getElementById('loading').classList.add('active');
+      setStatus('busy', title);
+    }
+    function setProgress(pct) {
+      document.getElementById('progressFill').style.width = pct + '%';
+    }
+    function hideLoading() {
+      document.getElementById('loading').classList.remove('active');
+      setStatus('ok', 'Ready');
+    }
+    function setStatus(kind, text) {
+      const el = document.getElementById('statusText');
+      el.textContent = text;
+      el.className = kind;
+    }
+    function toast(msg, duration = 3000) {
+      document.querySelectorAll('.toast').forEach(t => t.remove());
+      const t = document.createElement('div');
+      t.className = 'toast';
+      t.textContent = msg;
+      document.body.appendChild(t);
+      if (duration > 0) setTimeout(() => t.remove(), duration);
+    }
+    function fmtBytes(b) {
+      if (b < 1024) return b + ' B';
+      if (b < 1024*1024) return (b/1024).toFixed(1) + ' KB';
+      return (b/1024/1024).toFixed(2) + ' MB';
+    }
+
+    // ============= FILE LOADING =============
+    function loadImage(file) {
+      currentFile = file;
+      const reader = new FileReader();
+      reader.onload = e => {
+        const img = new Image();
+        img.onload = () => {
+          originalCanvas.width = img.naturalWidth;
+          originalCanvas.height = img.naturalHeight;
+          originalCtx.drawImage(img, 0, 0);
+          canvas.width = img.naturalWidth;
+          canvas.height = img.naturalHeight;
+          ctx.drawImage(img, 0, 0);
+          empty.style.display = 'none';
+          frame.style.display = 'block';
+          document.getElementById('upscaleBtn').disabled = false;
+          document.getElementById('downloadBtn').disabled = false;
+          document.getElementById('resetBtn').disabled = true;
+          updateDims();
+          toast(`✅ Loaded ${file.name} · ${img.naturalWidth}×${img.naturalHeight}px · ${fmtBytes(file.size)}`);
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function updateDims() {
+      const w = canvas.width, h = canvas.height;
+      document.getElementById('dimText').textContent = w + ' × ' + h + ' px';
+    }
+
+    // ============= ADJUSTMENTS =============
+    function applyAdjustments() {
+      if (!originalCanvas.width) return;
+      const bright = parseInt(document.getElementById('brightness').value);
+      const contrast = parseInt(document.getElementById('contrast').value);
+      const sat = parseInt(document.getElementById('saturation').value);
+      const sharp = parseInt(document.getElementById('sharpness').value);
+      const denoise = parseInt(document.getElementById('denoise').value);
+      // Display current values
+      document.getElementById('brightnessVal').textContent = bright;
+      document.getElementById('contrastVal').textContent = contrast;
+      document.getElementById('saturationVal').textContent = sat;
+      document.getElementById('sharpnessVal').textContent = sharp;
+      document.getElementById('denoiseVal').textContent = denoise;
+      // Reset to original
+      canvas.width = originalCanvas.width;
+      canvas.height = originalCanvas.height;
+      ctx.drawImage(originalCanvas, 0, 0);
+      // Apply pixel-level adjustments
+      const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const d = img.data;
+      const brightMul = 1 + (bright / 100);
+      const contrastFactor = 1 + (contrast / 100);
+      const satFactor = 1 + (sat / 100);
+      for (let i = 0; i < d.length; i += 4) {
+        let r = d[i], g = d[i+1], b = d[i+2];
+        // Brightness
+        r *= brightMul; g *= brightMul; b *= brightMul;
+        // Contrast
+        r = (r - 128) * contrastFactor + 128;
+        g = (g - 128) * contrastFactor + 128;
+        b = (b - 128) * contrastFactor + 128;
+        // Saturation
+        const gray = r * 0.299 + g * 0.587 + b * 0.114;
+        r = gray + (r - gray) * satFactor;
+        g = gray + (g - gray) * satFactor;
+        b = gray + (b - gray) * satFactor;
+        d[i] = Math.max(0, Math.min(255, r));
+        d[i+1] = Math.max(0, Math.min(255, g));
+        d[i+2] = Math.max(0, Math.min(255, b));
+      }
+      ctx.putImageData(img, 0, 0);
+      // Sharpen (simple 3x3 convolution)
+      if (sharp > 0) {
+        const tmp = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const s = tmp.data;
+        const out = new Uint8ClampedArray(s);
+        const k = (sharp / 100) * 0.6;
+        for (let y = 1; y < canvas.height - 1; y++) {
+          for (let x = 1; x < canvas.width - 1; x++) {
+            const i = (y * canvas.width + x) * 4;
+            for (let c = 0; c < 3; c++) {
+              const v = s[i + c] * (1 + 4*k)
+                      - s[i - 4 + c] * k
+                      - s[i + 4 + c] * k
+                      - s[i - canvas.width*4 + c] * k
+                      - s[i + canvas.width*4 + c] * k;
+              out[i + c] = Math.max(0, Math.min(255, v));
+            }
+          }
+        }
+        ctx.putImageData(new ImageData(out, canvas.width, canvas.height), 0, 0);
+      }
+      lastOperation = 'adjustments';
+      document.getElementById('resetBtn').disabled = false;
+    }
+
+    // ============= AI UPSCALE =============
+    async function doUpscale() {
+      if (!originalCanvas.width) return;
+      try {
+        await loadCore();
+        const modelKey = document.getElementById('model').value;
+        await loadModel(modelKey);
+        const pkgScale = modelKey.replace('esrgan-', '').split('-');
+        const pkg = 'ESRGAN' + pkgScale[0][0].toUpperCase() + pkgScale[0].slice(1);
+        const scale = pkgScale[1];
+        const modelDef = window[pkg + scale.replace('x','') + 'x'];
+        if (!modelDef) throw new Error('Model not loaded: ' + modelKey);
+        const upscaler = new Upscaler({ model: modelDef });
+        const targetScale = parseInt(document.getElementById('scale').value);
+        setLoading('🧠 Running ' + MODEL_LABELS[modelKey] + '...',
+          `${originalCanvas.width}×${originalCanvas.height} → ${originalCanvas.width * targetScale}×${originalCanvas.height * targetScale}. Real neural network.`);
+        const t0 = performance.now();
+        const result = await upscaler.upscale(originalCanvas, {
+          patchSize: targetScale >= 4 ? 128 : 256,
+          padding: 4,
+          progress: rate => setProgress(Math.round(rate * 100)),
+        });
+        const t1 = performance.now();
+        if (typeof result === 'string') {
+          const img = new Image();
+          await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = result; });
+          canvas.width = img.naturalWidth;
+          canvas.height = img.naturalHeight;
+          ctx.drawImage(img, 0, 0);
+        } else if (result instanceof HTMLCanvasElement) {
+          canvas.width = result.width;
+          canvas.height = result.height;
+          ctx.drawImage(result, 0, 0);
+        } else {
+          await tf.browser.toPixels(result, canvas);
+        }
+        lastOperation = 'upscale';
+        updateDims();
+        document.getElementById('resetBtn').disabled = false;
+        hideLoading();
+        toast(`✅ AI Upscale ${targetScale}x complete · ${((t1 - t0) / 1000).toFixed(1)}s`, 4000);
+      } catch (e) {
+        hideLoading();
+        console.error(e);
+        toast('❌ ' + e.message, 5000);
+      }
+    }
+
+    // ============= MAGIC PRESETS =============
+    const PRESETS = {
+      portrait: { label: '👤 Portrait', apply: d => { for (let i=0;i<d.length;i+=4){ d[i]=Math.min(255,d[i]*1.04+4); d[i+1]=Math.min(255,d[i+1]*1.02+2);} } },
+      landscape: { label: '🏔️ Landscape', apply: d => { for (let i=0;i<d.length;i+=4){ const g=d[i]*.299+d[i+1]*.587+d[i+2]*.114; d[i]=Math.min(255,g+(d[i]-g)*1.4); d[i+1]=Math.min(255,g+(d[i+1]-g)*1.4); d[i+2]=Math.min(255,g+(d[i+2]-g)*1.4);} } },
+      oldphoto: { label: '📜 Old Photo', apply: d => { for (let i=0;i<d.length;i+=4){ d[i]=Math.min(255,d[i]*1.05+6); d[i+1]=Math.min(255,d[i+1]*1.02+3); d[i+2]=Math.min(255,d[i+2]*0.95);} } },
+      lowlight: { label: '🌙 Low Light', apply: d => { for (let i=0;i<d.length;i+=4){ d[i]=Math.min(255,255*Math.pow(d[i]/255,0.55)); d[i+1]=Math.min(255,255*Math.pow(d[i+1]/255,0.55)); d[i+2]=Math.min(255,255*Math.pow(d[i+2]/255,0.55));} } },
+      bw: { label: '🎞️ B&W', apply: d => { for (let i=0;i<d.length;i+=4){ const g=d[i]*.299+d[i+1]*.587+d[i+2]*.114; d[i]=d[i+1]=d[i+2]=g;} } },
+      vintage: { label: '🕶️ Vintage', apply: d => { for (let i=0;i<d.length;i+=4){ d[i]=Math.min(255,d[i]*1.10+8); d[i+1]=Math.min(255,d[i+1]*1.03); d[i+2]=Math.min(255,d[i+2]*0.85);} } },
+      sharpen: { label: '💎 Crystal', apply: null },
+      web: { label: '🌐 Web', apply: d => { for (let i=0;i<d.length;i+=4){ d[i]=Math.max(0,Math.min(255,(d[i]-128)*1.10+128)); d[i+1]=Math.max(0,Math.min(255,(d[i+1]-128)*1.10+128)); d[i+2]=Math.max(0,Math.min(255,(d[i+2]-128)*1.10+128));} } },
+    };
+    function applyPreset(key) {
+      if (!originalCanvas.width) return;
+      // Reset to original first
+      canvas.width = originalCanvas.width;
+      canvas.height = originalCanvas.height;
+      ctx.drawImage(originalCanvas, 0, 0);
+      // Apply adjustment sliders first
+      applyAdjustments();
+      // Then preset
+      const p = PRESETS[key];
+      if (p && p.apply) {
+        const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        p.apply(img.data);
+        ctx.putImageData(img, 0, 0);
+      }
+      document.querySelectorAll('#presets button').forEach(b => b.classList.remove('active'));
+      const btn = document.querySelector(`#presets button[data-preset="${key}"]`);
+      if (btn) btn.classList.add('active');
+      activePreset = key;
+      lastOperation = 'preset';
+      document.getElementById('resetBtn').disabled = false;
+      toast('✨ Applied: ' + p.label);
+    }
+
+    // ============= RESET / DOWNLOAD =============
+    function resetToOriginal() {
+      if (!originalCanvas.width) return;
+      canvas.width = originalCanvas.width;
+      canvas.height = originalCanvas.height;
+      ctx.drawImage(originalCanvas, 0, 0);
+      // Reset sliders
+      ['brightness', 'contrast', 'saturation', 'sharpness', 'denoise'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = 0;
+      });
+      document.querySelectorAll('#presets button').forEach(b => b.classList.remove('active'));
+      activePreset = null;
+      lastOperation = null;
+      document.getElementById('resetBtn').disabled = true;
+      updateDims();
+      toast('↺ Reset to original');
+    }
+    function download() {
+      if (!canvas.width) return;
+      canvas.toBlob(blob => {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        const baseName = (currentFile?.name || 'image').replace(/\.[^.]+$/, '');
+        a.download = `${baseName}_${lastOperation || 'edited'}.png`;
+        a.click();
+        toast('📥 Download started', 2000);
+      }, 'image/png');
+    }
+
+    // ============= WIRE UP =============
+    document.getElementById('loadBtn').onclick = () => document.getElementById('fileInput').click();
+    document.getElementById('fileInput').onchange = e => { if (e.target.files[0]) loadImage(e.target.files[0]); };
+    document.getElementById('backBtn').onclick = () => { window.location.href = 'index.html'; };
+    document.getElementById('upscaleBtn').onclick = doUpscale;
+    document.getElementById('downloadBtn').onclick = download;
+    document.getElementById('resetBtn').onclick = resetToOriginal;
+    // Adjustments sliders (debounced)
+    let debounceTimer = null;
+    ['brightness', 'contrast', 'saturation', 'sharpness', 'denoise'].forEach(id => {
+      document.getElementById(id).addEventListener('input', () => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(applyAdjustments, 150);
+      });
+    });
+    // Presets
+    document.querySelectorAll('#presets button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const key = btn.dataset.preset;
+        if (key) applyPreset(key);
+      });
+    });
+    // Drag & drop
+    const stage = document.getElementById('stage');
+    stage.addEventListener('dragover', e => { e.preventDefault(); stage.style.background = '#1a1a3a'; });
+    stage.addEventListener('dragleave', () => { stage.style.background = ''; });
+    stage.addEventListener('drop', e => {
+      e.preventDefault();
+      stage.style.background = '';
+      if (e.dataTransfer.files[0]) loadImage(e.dataTransfer.files[0]);
+    });
+    setStatus('ok', 'Ready · drop an image to start');
+  </script>
+</body>
+</html>
