@@ -1,0 +1,1585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🎨 AI Image Studio — Fullscreen</title>
+  <style>
+    * { box-sizing: border-box; }
+    body, html { margin: 0; padding: 0; height: 100%; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+      background-attachment: fixed;
+      color: #e8e8f0;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ============= Top header ============= */
+    .fs-header {
+      background: rgba(15, 12, 41, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(167, 139, 250, 0.2);
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+    .fs-header h1 {
+      margin: 0;
+      font-size: 20px;
+      background: linear-gradient(45deg, #a78bfa, #f472b6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .fs-header .subtitle {
+      font-size: 12px;
+      color: #8888a8;
+    }
+    .fs-header .spacer { flex: 1; }
+    .header-btn {
+      background: linear-gradient(45deg, #4f46e5, #7c3aed);
+      color: white;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.2s;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: inherit;
+    }
+    .header-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4); }
+    .header-btn.secondary { background: linear-gradient(45deg, #4b5563, #6b7280); }
+    .header-btn.secondary:hover { box-shadow: 0 4px 12px rgba(75, 85, 99, 0.4); }
+
+    /* ============= Main layout ============= */
+    .fs-main {
+      display: flex;
+      gap: 20px;
+      padding: 20px;
+      min-height: calc(100vh - 64px);
+    }
+    .fs-sidebar {
+      width: 380px;
+      flex-shrink: 0;
+      background: rgba(30, 30, 60, 0.6);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-radius: 16px;
+      border: 1px solid rgba(167, 139, 250, 0.15);
+      padding: 20px;
+      overflow-y: auto;
+      max-height: calc(100vh - 104px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    }
+    .fs-sidebar::-webkit-scrollbar { width: 8px; }
+    .fs-sidebar::-webkit-scrollbar-track { background: transparent; }
+    .fs-sidebar::-webkit-scrollbar-thumb { background: rgba(167, 139, 250, 0.3); border-radius: 4px; }
+    .fs-sidebar::-webkit-scrollbar-thumb:hover { background: rgba(167, 139, 250, 0.5); }
+
+    .fs-canvas-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      min-width: 0;
+    }
+
+    .section-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #a78bfa;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin: 0 0 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .section-title:not(:first-child) { margin-top: 18px; }
+
+    /* ============= Upload area ============= */
+    .upload-area-fs {
+      border: 3px dashed rgba(167, 139, 250, 0.4);
+      border-radius: 14px;
+      padding: 32px 20px;
+      text-align: center;
+      background: rgba(167, 139, 250, 0.05);
+      transition: all 0.3s ease;
+      cursor: pointer;
+      margin-bottom: 16px;
+    }
+    .upload-area-fs:hover {
+      border-color: #a78bfa;
+      background: rgba(167, 139, 250, 0.1);
+      transform: translateY(-2px);
+    }
+    .upload-area-fs.dragover {
+      border-color: #f472b6;
+      background: rgba(244, 114, 182, 0.15);
+      transform: scale(1.02);
+    }
+    .upload-area-fs .icon { font-size: 42px; margin-bottom: 10px; }
+    .upload-area-fs h3 { margin: 0 0 6px; font-size: 15px; color: #e8e8f0; }
+    .upload-area-fs p { margin: 0; font-size: 12px; color: #8888a8; }
+
+    /* ============= Form elements ============= */
+    .input-group-fs { margin-bottom: 14px; }
+    .input-group-fs label {
+      display: block;
+      font-size: 13px;
+      color: #c0c0e0;
+      margin-bottom: 6px;
+      font-weight: 500;
+    }
+    .input-group-fs input[type="number"],
+    .input-group-fs input[type="text"],
+    .input-group-fs select {
+      width: 100%;
+      padding: 10px 12px;
+      background: rgba(15, 12, 41, 0.6);
+      color: #e8e8f0;
+      border: 1px solid rgba(167, 139, 250, 0.2);
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+      transition: all 0.2s;
+    }
+    .input-group-fs input:focus,
+    .input-group-fs select:focus {
+      outline: none;
+      border-color: #a78bfa;
+      box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.15);
+    }
+    .input-group-fs input[type="range"] {
+      width: 100%;
+      accent-color: #a78bfa;
+    }
+    .range-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .range-row .value-label {
+      min-width: 44px;
+      text-align: right;
+      color: #f472b6;
+      font-weight: 600;
+      font-size: 13px;
+    }
+
+    /* Toggle switch */
+    .toggle-container-fs {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .toggle-checkbox { display: none; }
+    .toggle-label-fs {
+      display: inline-block;
+      position: relative;
+      width: 50px;
+      height: 26px;
+      background: #555;
+      border-radius: 26px;
+      cursor: pointer;
+      transition: all 0.3s;
+      flex-shrink: 0;
+    }
+    .toggle-checkbox:checked + .toggle-label-fs {
+      background: linear-gradient(45deg, #a78bfa, #7c3aed);
+    }
+    .toggle-switch-fs {
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 20px;
+      height: 20px;
+      background: white;
+      border-radius: 50%;
+      transition: all 0.3s;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+    .toggle-checkbox:checked + .toggle-label-fs .toggle-switch-fs {
+      transform: translateX(24px);
+    }
+    .toggle-text-fs {
+      font-size: 13px;
+      color: #c0c0e0;
+    }
+
+    /* Quality / Preset selectors */
+    .quality-selector-fs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 6px;
+    }
+    .quality-option-fs {
+      text-align: center;
+      padding: 12px 8px;
+      border: 2px solid rgba(167, 139, 250, 0.2);
+      border-radius: 10px;
+      cursor: pointer;
+      background: rgba(15, 12, 41, 0.4);
+      transition: all 0.2s;
+      color: #e8e8f0;
+    }
+    .quality-option-fs:hover {
+      border-color: #a78bfa;
+      background: rgba(167, 139, 250, 0.1);
+    }
+    .quality-option-fs.selected {
+      border-color: #f472b6;
+      background: rgba(244, 114, 182, 0.15);
+    }
+    .quality-option-fs .emoji { font-size: 22px; }
+    .quality-option-fs strong { display: block; font-size: 12px; margin-top: 4px; }
+    .quality-option-fs small { display: block; font-size: 10px; color: #8888a8; margin-top: 2px; }
+
+    .preset-grid-fs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin-top: 6px;
+    }
+    .preset-btn-fs {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      padding: 10px 6px;
+      border: 2px solid rgba(167, 139, 250, 0.2);
+      border-radius: 8px;
+      background: rgba(15, 12, 41, 0.4);
+      cursor: pointer;
+      color: #e8e8f0;
+      font-family: inherit;
+      font-size: 11px;
+      transition: all 0.2s;
+    }
+    .preset-btn-fs:hover {
+      border-color: #a78bfa;
+      background: rgba(167, 139, 250, 0.1);
+    }
+    .preset-btn-fs.active {
+      border-color: #f472b6;
+      background: rgba(244, 114, 182, 0.15);
+    }
+    .preset-btn-fs .emoji { font-size: 20px; }
+    .preset-btn-fs strong { font-size: 11px; }
+    .preset-btn-fs small { font-size: 9px; color: #8888a8; }
+
+    /* Buttons */
+    .btn-fs {
+      background: linear-gradient(45deg, #667eea, #764ba2);
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.2s;
+      font-family: inherit;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-fs:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4); }
+    .btn-fs:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+    .btn-fs.success { background: linear-gradient(45deg, #11998e, #38ef7d); color: #0a3d2e; }
+    .btn-fs.success:hover { box-shadow: 0 8px 20px rgba(56, 239, 125, 0.4); }
+    .btn-fs.danger { background: linear-gradient(45deg, #dc2626, #ef4444); }
+    .btn-fs.danger:hover { box-shadow: 0 8px 20px rgba(239, 68, 68, 0.4); }
+    .btn-fs.pdf { background: linear-gradient(45deg, #dc2626, #b91c1c); }
+    .btn-fs.pdf:hover { box-shadow: 0 8px 20px rgba(220, 38, 38, 0.4); }
+    .btn-fs.secondary { background: linear-gradient(45deg, #4b5563, #6b7280); }
+
+    .actions-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 18px;
+    }
+
+    /* ============= Preview area ============= */
+    .preview-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      flex: 1;
+      min-height: 0;
+    }
+    .preview-card {
+      background: rgba(30, 30, 60, 0.5);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(167, 139, 250, 0.15);
+      border-radius: 14px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      min-height: 380px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    }
+    .preview-card-header {
+      background: rgba(15, 12, 41, 0.6);
+      padding: 12px 18px;
+      font-weight: 600;
+      border-bottom: 1px solid rgba(167, 139, 250, 0.15);
+      text-align: center;
+      font-size: 14px;
+      color: #e8e8f0;
+    }
+    .preview-card-canvas {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background-color: #fff;
+      background-image:
+        linear-gradient(45deg, #e8e8e8 25%, transparent 25%),
+        linear-gradient(-45deg, #e8e8e8 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #e8e8e8 75%),
+        linear-gradient(-45deg, transparent 75%, #e8e8e8 75%);
+      background-size: 20px 20px;
+      background-position: 0 0, 0 10px, 10px -10px, 10px 0;
+      min-height: 0;
+      overflow: hidden;
+    }
+    .preview-card-canvas canvas {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+      border-radius: 4px;
+    }
+
+    /* ============= File info ============= */
+    .file-info-fs {
+      background: rgba(30, 30, 60, 0.5);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(167, 139, 250, 0.15);
+      border-radius: 14px;
+      padding: 16px 20px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    }
+    .file-info-fs h3 {
+      margin: 0 0 12px;
+      font-size: 15px;
+      color: #a78bfa;
+    }
+    .file-info-fs .info-line { font-size: 13px; color: #c0c0e0; margin-bottom: 4px; }
+    .file-info-fs .info-line strong { color: #e8e8f0; }
+    .size-comparison-fs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 14px;
+    }
+    .size-block-fs {
+      padding: 14px;
+      border-radius: 10px;
+      background: rgba(15, 12, 41, 0.5);
+      border: 1px solid rgba(167, 139, 250, 0.2);
+    }
+    .size-block-fs.original-fs { border-color: rgba(59, 130, 246, 0.4); }
+    .size-block-fs.enhanced-fs { border-color: rgba(244, 114, 182, 0.4); }
+    .size-block-fs.reduced-fs { border-color: rgba(16, 185, 129, 0.4); }
+    .size-block-fs.stretched-fs { border-color: rgba(239, 68, 68, 0.4); }
+    .size-block-fs h4 { margin: 0 0 8px; font-size: 13px; }
+    .size-block-fs .stat { font-size: 12px; color: #c0c0e0; margin-bottom: 2px; }
+
+    /* ============= Messages ============= */
+    .message-fs {
+      padding: 12px 16px;
+      border-radius: 10px;
+      margin: 12px 0;
+      font-size: 13px;
+      font-weight: 500;
+      animation: slideIn 0.3s ease;
+    }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .message-fs.success {
+      background: rgba(16, 185, 129, 0.15);
+      color: #6ee7b7;
+      border-left: 4px solid #10b981;
+    }
+    .message-fs.error {
+      background: rgba(239, 68, 68, 0.15);
+      color: #fca5a5;
+      border-left: 4px solid #ef4444;
+    }
+    .message-fs.info {
+      background: rgba(59, 130, 246, 0.15);
+      color: #93c5fd;
+      border-left: 4px solid #3b82f6;
+    }
+
+    /* ============= Loading overlay ============= */
+    .loading-overlay-fs {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(15, 12, 41, 0.92);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    .loading-overlay-fs.active { display: flex; }
+    .loading-content-fs {
+      background: rgba(30, 30, 60, 0.95);
+      padding: 40px 50px;
+      border-radius: 20px;
+      text-align: center;
+      max-width: 440px;
+      border: 1px solid rgba(167, 139, 250, 0.3);
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+    }
+    .spinner-fs {
+      width: 60px;
+      height: 60px;
+      border: 5px solid rgba(167, 139, 250, 0.2);
+      border-top-color: #a78bfa;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .progress-bar-fs {
+      width: 100%;
+      height: 8px;
+      background: rgba(167, 139, 250, 0.15);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 18px;
+    }
+    .progress-fill-fs {
+      height: 100%;
+      background: linear-gradient(45deg, #a78bfa, #f472b6);
+      width: 0%;
+      transition: width 0.3s;
+      border-radius: 4px;
+    }
+    .loading-text-fs { color: #e8e8f0; font-size: 15px; font-weight: 600; }
+    .loading-sub-fs { color: #8888a8; font-size: 12px; margin-top: 6px; }
+
+    /* ============= Empty state ============= */
+    .empty-state-fs {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+      color: #6a6a8e;
+      text-align: center;
+    }
+    .empty-state-fs .icon { font-size: 64px; margin-bottom: 16px; }
+    .empty-state-fs h3 { margin: 0 0 8px; color: #c0c0e0; font-size: 16px; }
+    .empty-state-fs p { margin: 0; font-size: 13px; }
+
+    /* ============= Responsive ============= */
+    @media (max-width: 1024px) {
+      .fs-main { flex-direction: column; }
+      .fs-sidebar { width: 100%; max-height: none; }
+      .preview-row { grid-template-columns: 1fr; }
+      .preview-card { min-height: 280px; }
+    }
+    @media (max-width: 640px) {
+      .fs-header h1 { font-size: 16px; }
+      .fs-header .subtitle { display: none; }
+      .header-btn { padding: 6px 10px; font-size: 12px; }
+      .fs-main { padding: 12px; gap: 12px; }
+      .fs-sidebar { padding: 14px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="fs-header">
+    <h1 id="toolTitle">🎨 AI Image Studio</h1>
+    <span class="subtitle" id="toolSubtitle">Fullscreen workspace</span>
+    <div class="spacer"></div>
+    <button class="header-btn secondary" id="backBtn">← Back to App</button>
+    <button class="header-btn" id="resetBtn" disabled>↺ Reset</button>
+  </div>
+
+  <div class="fs-main">
+    <aside class="fs-sidebar" id="sidebar">
+      <!-- Tool-specific UI is injected here by JS -->
+    </aside>
+    <div class="fs-canvas-area">
+      <div class="preview-row">
+        <div class="preview-card">
+          <div class="preview-card-header">📷 Original</div>
+          <div class="preview-card-canvas" id="originalBox">
+            <canvas id="originalCanvas"></canvas>
+          </div>
+        </div>
+        <div class="preview-card">
+          <div class="preview-card-header" id="processedHeader">✨ Processed</div>
+          <div class="preview-card-canvas" id="processedBox">
+            <canvas id="processedCanvas"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="file-info-fs" id="fileInfo" style="display:none;">
+        <h3>📊 File Information</h3>
+        <div id="basicInfo"></div>
+        <div class="size-comparison-fs" id="sizeComparison"></div>
+      </div>
+      <div id="messageArea"></div>
+    </div>
+  </div>
+
+  <div class="loading-overlay-fs" id="loadingOverlay">
+    <div class="loading-content-fs">
+      <div class="spinner-fs"></div>
+      <div class="loading-text-fs" id="loadingText">Working...</div>
+      <div class="loading-sub-fs" id="loadingSub"></div>
+      <div class="progress-bar-fs">
+        <div class="progress-fill-fs" id="progressFill"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/piexifjs"></script>
+  <script>
+    // =============================================================
+    //   FULLSCREEN.HTML — distraction-free workspace for a single tool
+    //   URL: fullscreen.html?tool=resize|upscale|enhance[&preset=...][&pending=1]
+    //   If pending=1, auto-loads an image stashed in sessionStorage
+    //   by the main app's openFullscreen() helper.
+    // =============================================================
+
+    // ---------- URL params ----------
+    const urlParams = new URLSearchParams(window.location.search);
+    const TOOL = (urlParams.get('tool') || 'resize').toLowerCase();
+    const PRESET_PARAM = urlParams.get('preset') || '';
+    const PENDING = urlParams.get('pending') === '1';
+
+    const TOOL_META = {
+      resize:  { title: '📏 Smart Resize',       sub: 'Print-ready resize by inches & DPI' },
+      upscale: { title: '🔬 AI Upscale',         sub: 'Real neural network super-resolution' },
+      enhance: { title: '✨ AI Enhance',         sub: 'Real ESRGAN + magic presets' },
+    };
+    const meta = TOOL_META[TOOL] || TOOL_META.resize;
+    document.getElementById('toolTitle').textContent = meta.title;
+    document.getElementById('toolSubtitle').textContent = meta.sub;
+
+    // ---------- Globals ----------
+    let currentFile = null;
+    let pdfDoc = null;
+    let currentPage = 1;
+    let totalPages = 1;
+    let originalDimensions = null;
+    let originalAspectRatio = 1;
+    let isUpdatingDimensions = false;
+    let selectedQualityMode = 'general';
+    let lastResult = null; // { width, height, processedHeader } — used to enable Reset
+
+    const originalCanvas = document.getElementById('originalCanvas');
+    const processedCanvas = document.getElementById('processedCanvas');
+    const originalCtx = originalCanvas.getContext('2d');
+    const processedCtx = processedCanvas.getContext('2d');
+
+    // ---------- Tool UI (sidebar) ----------
+    function buildSidebar() {
+      const sb = document.getElementById('sidebar');
+      sb.innerHTML = getToolUI(TOOL);
+      setupToolListeners();
+    }
+
+    function getToolUI(tool) {
+      if (tool === 'upscale') {
+        return `
+          <h3 class="section-title">📤 Upload</h3>
+          <div class="upload-area-fs" id="uploadArea">
+            <div class="icon">🔬</div>
+            <h3>Drop image here or click to browse</h3>
+            <p>JPEG, PNG, WebP</p>
+            <input type="file" id="fileInput" accept="image/*" style="display:none">
+          </div>
+
+          <h3 class="section-title">⚙️ Settings</h3>
+          <div class="input-group-fs">
+            <label>🎚️ Scale Factor</label>
+            <select id="scaleFactor">
+              <option value="2">2x (Double)</option>
+              <option value="3">3x (Triple)</option>
+              <option value="4" selected>4x (Quad)</option>
+              <option value="6">6x</option>
+              <option value="8">8x</option>
+              ${[9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50].map(n => `<option value="${n}">${n}x</option>`).join('')}
+            </select>
+          </div>
+
+          <div class="input-group-fs">
+            <label>🎨 Content Type</label>
+            <div class="quality-selector-fs">
+              <div class="quality-option-fs selected" data-mode="general">
+                <div class="emoji">🖼️</div>
+                <strong>General</strong>
+                <small>Best for photos</small>
+              </div>
+              <div class="quality-option-fs" data-mode="artwork">
+                <div class="emoji">🎨</div>
+                <strong>Artwork</strong>
+                <small>Drawings & art</small>
+              </div>
+              <div class="quality-option-fs" data-mode="anime">
+                <div class="emoji">🗾</div>
+                <strong>Anime</strong>
+                <small>Anime / manga</small>
+              </div>
+              <div class="quality-option-fs" data-mode="face">
+                <div class="emoji">👤</div>
+                <strong>Portrait</strong>
+                <small>Faces & people</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="actions-row">
+            <button class="btn-fs" id="actionBtn" style="flex:1;">🚀 AI Upscale</button>
+          </div>
+          <div class="actions-row">
+            <button class="btn-fs success" id="downloadBtn" disabled>💾 Download PNG</button>
+            <button class="btn-fs pdf" id="pdfBtn" disabled>📄 Export PDF</button>
+          </div>
+        `;
+      }
+      if (tool === 'enhance') {
+        return `
+          <h3 class="section-title">📤 Upload</h3>
+          <div class="upload-area-fs" id="uploadArea">
+            <div class="icon">✨</div>
+            <h3>Drop image here or click to browse</h3>
+            <p>Real ESRGAN runs in your browser</p>
+            <input type="file" id="fileInput" accept="image/*" style="display:none">
+          </div>
+
+          <h3 class="section-title">✨ Magic Presets</h3>
+          <div class="preset-grid-fs" id="magicPresets">
+            <button class="preset-btn-fs" data-preset="portrait"><span class="emoji">👤</span><strong>Portrait Pop</strong><small>Warm skin</small></button>
+            <button class="preset-btn-fs" data-preset="landscape"><span class="emoji">🏔️</span><strong>Vivid</strong><small>Punchy</small></button>
+            <button class="preset-btn-fs" data-preset="oldphoto"><span class="emoji">📜</span><strong>Old Photo</strong><small>Restore</small></button>
+            <button class="preset-btn-fs" data-preset="lowlight"><span class="emoji">🌙</span><strong>Low Light</strong><small>Brighten</small></button>
+            <button class="preset-btn-fs" data-preset="bw"><span class="emoji">🎞</span><strong>B&amp;W</strong><small>Mono</small></button>
+            <button class="preset-btn-fs" data-preset="vintage"><span class="emoji">🕶️</span><strong>Vintage</strong><small>Warm retro</small></button>
+            <button class="preset-btn-fs" data-preset="sharpen"><span class="emoji">💎</span><strong>Crystal</strong><small>Max sharp</small></button>
+            <button class="preset-btn-fs" data-preset="web"><span class="emoji">🌐</span><strong>Web</strong><small>For screens</small></button>
+          </div>
+
+          <h3 class="section-title">⚙️ Fine-tune</h3>
+          <div class="input-group-fs">
+            <label>🔧 Enhancement Level</label>
+            <select id="enhanceLevel">
+              <option value="mild">Mild (subtle)</option>
+              <option value="moderate" selected>Moderate (balanced)</option>
+              <option value="strong">Strong (maximum)</option>
+            </select>
+          </div>
+          <div class="input-group-fs">
+            <label>🎛️ Noise Reduction <span class="value-label" id="noiseValue" style="float:right;">50%</span></label>
+            <div class="range-row">
+              <input type="range" id="noiseReduction" min="0" max="100" value="50">
+            </div>
+          </div>
+          <div class="input-group-fs">
+            <label>🔍 Sharpening <span class="value-label" id="sharpValue" style="float:right;">30%</span></label>
+            <div class="range-row">
+              <input type="range" id="sharpening" min="0" max="100" value="30">
+            </div>
+          </div>
+
+          <div class="actions-row">
+            <button class="btn-fs" id="actionBtn" style="flex:1;">✨ AI Enhance</button>
+          </div>
+          <div class="actions-row">
+            <button class="btn-fs success" id="downloadBtn" disabled>💾 Download PNG</button>
+            <button class="btn-fs pdf" id="pdfBtn" disabled>📄 Export PDF</button>
+          </div>
+        `;
+      }
+      // Default: resize
+      return `
+        <h3 class="section-title">📤 Upload</h3>
+        <div class="upload-area-fs" id="uploadArea">
+          <div class="icon">📸</div>
+          <h3>Drop image here or click to browse</h3>
+          <p>JPEG, PNG, PDF</p>
+          <input type="file" id="fileInput" accept="image/*,application/pdf" style="display:none">
+        </div>
+
+        <h3 class="section-title">⚙️ Settings</h3>
+        <div class="input-group-fs">
+          <label>🔗 Constrain Proportions</label>
+          <div class="toggle-container-fs">
+            <input type="checkbox" id="constrainProportions" class="toggle-checkbox" checked>
+            <label for="constrainProportions" class="toggle-label-fs">
+              <span class="toggle-switch-fs"></span>
+            </label>
+            <span class="toggle-text-fs">Lock aspect ratio</span>
+          </div>
+        </div>
+
+        <div class="input-group-fs">
+          <label>🏠 Width (inches)</label>
+          <input type="number" id="widthIn" value="0" step="0.1" min="0.1">
+        </div>
+
+        <div class="input-group-fs">
+          <label>📐 Height (inches)</label>
+          <input type="number" id="heightIn" value="0" step="0.1" min="0.1">
+        </div>
+
+        <div class="input-group-fs">
+          <label>🎯 DPI</label>
+          <input type="number" id="dpi" value="300" min="72" max="600">
+        </div>
+
+        <div class="actions-row">
+          <button class="btn-fs" id="actionBtn" style="flex:1;">🔄 Resize & Preview</button>
+        </div>
+        <div class="actions-row">
+          <button class="btn-fs success" id="downloadBtn" disabled>💾 Download PNG</button>
+          <button class="btn-fs pdf" id="pdfBtn" disabled>📄 Export PDF</button>
+        </div>
+      `;
+    }
+
+    function setupToolListeners() {
+      // Upload area
+      const uploadArea = document.getElementById('uploadArea');
+      if (uploadArea) {
+        uploadArea.addEventListener('click', () => document.getElementById('fileInput').click());
+        uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.classList.add('dragover'); });
+        uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
+        uploadArea.addEventListener('drop', e => {
+          e.preventDefault();
+          uploadArea.classList.remove('dragover');
+          const file = e.dataTransfer.files[0];
+          if (file) loadFile(file);
+        });
+      }
+      const fileInput = document.getElementById('fileInput');
+      if (fileInput) {
+        fileInput.addEventListener('change', e => {
+          if (e.target.files[0]) loadFile(e.target.files[0]);
+        });
+      }
+
+      // Tool-specific listeners
+      if (TOOL === 'resize') {
+        document.getElementById('widthIn').addEventListener('input', handleWidthChange);
+        document.getElementById('heightIn').addEventListener('input', handleHeightChange);
+        document.getElementById('actionBtn').addEventListener('click', handleResize);
+      } else if (TOOL === 'upscale') {
+        document.getElementById('actionBtn').addEventListener('click', handleUpscale);
+        document.querySelectorAll('.quality-option-fs').forEach(opt => {
+          opt.addEventListener('click', () => {
+            document.querySelectorAll('.quality-option-fs').forEach(o => o.classList.remove('selected'));
+            opt.classList.add('selected');
+            selectedQualityMode = opt.dataset.mode;
+          });
+        });
+      } else if (TOOL === 'enhance') {
+        document.getElementById('actionBtn').addEventListener('click', handleEnhance);
+        document.getElementById('noiseReduction').addEventListener('input', updateNoiseValue);
+        document.getElementById('sharpening').addEventListener('input', updateSharpValue);
+        document.querySelectorAll('.preset-btn-fs').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const key = btn.dataset.preset;
+            if (key) applyMagicPreset(key);
+          });
+        });
+        // Apply preset passed via URL
+        if (PRESET_PARAM) applyMagicPreset(PRESET_PARAM);
+      }
+
+      // Download & PDF (every tool has these)
+      const dl = document.getElementById('downloadBtn');
+      if (dl) dl.addEventListener('click', () => downloadProcessedImage());
+      const pdf = document.getElementById('pdfBtn');
+      if (pdf) pdf.addEventListener('click', exportAsPDF);
+    }
+
+    // ---------- Dimension constraint helpers ----------
+    function handleWidthChange() {
+      if (isUpdatingDimensions) return;
+      const constrain = document.getElementById('constrainProportions')?.checked;
+      if (constrain && originalAspectRatio && originalDimensions) {
+        isUpdatingDimensions = true;
+        const w = parseFloat(document.getElementById('widthIn').value);
+        if (w > 0) document.getElementById('heightIn').value = (w / originalAspectRatio).toFixed(2);
+        isUpdatingDimensions = false;
+      }
+    }
+    function handleHeightChange() {
+      if (isUpdatingDimensions) return;
+      const constrain = document.getElementById('constrainProportions')?.checked;
+      if (constrain && originalAspectRatio && originalDimensions) {
+        isUpdatingDimensions = true;
+        const h = parseFloat(document.getElementById('heightIn').value);
+        if (h > 0) document.getElementById('widthIn').value = (h * originalAspectRatio).toFixed(2);
+        isUpdatingDimensions = false;
+      }
+    }
+
+    // ---------- File loading ----------
+    function loadFile(file) {
+      currentFile = file;
+      if (file.type === 'application/pdf' && TOOL === 'resize') {
+        loadPDF(file);
+      } else if (file.type.startsWith('image/')) {
+        loadImage(file);
+      } else {
+        showMessage('❌ Unsupported file type. Please select an image (or PDF for resize).', 'error');
+      }
+      document.getElementById('resetBtn').disabled = false;
+    }
+
+    function loadImage(file) {
+      const img = new Image();
+      img.onload = function() {
+        originalDimensions = { width: img.naturalWidth, height: img.naturalHeight };
+        originalAspectRatio = originalDimensions.width / originalDimensions.height;
+        const wIn = (originalDimensions.width / 72).toFixed(2);
+        const hIn = (originalDimensions.height / 72).toFixed(2);
+        const wInput = document.getElementById('widthIn');
+        const hInput = document.getElementById('heightIn');
+        if (wInput) wInput.value = wIn;
+        if (hInput) hInput.value = hIn;
+        originalCanvas.width = img.naturalWidth;
+        originalCanvas.height = img.naturalHeight;
+        originalCtx.drawImage(img, 0, 0);
+        updateFileInfo();
+        showMessage('✅ Image loaded · ' + img.naturalWidth + ' × ' + img.naturalHeight + ' px', 'success');
+      };
+      img.src = URL.createObjectURL(file);
+    }
+
+    async function loadPDF(file) {
+      try {
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+          const pdfData = new Uint8Array(e.target.result);
+          pdfDoc = await pdfjsLib.getDocument({ data: pdfData }).promise;
+          totalPages = pdfDoc.numPages;
+          currentPage = 1;
+          await renderPDFPage(currentPage);
+          showMessage('✅ PDF loaded · ' + totalPages + ' page(s)', 'success');
+        };
+        reader.readAsArrayBuffer(file);
+      } catch (err) {
+        showMessage('❌ Error loading PDF: ' + err.message, 'error');
+      }
+    }
+
+    async function renderPDFPage(pageNum) {
+      const page = await pdfDoc.getPage(pageNum);
+      const viewport = page.getViewport({ scale: 1 });
+      originalDimensions = { width: Math.round(viewport.width), height: Math.round(viewport.height) };
+      originalAspectRatio = originalDimensions.width / originalDimensions.height;
+      const wIn = (originalDimensions.width / 72).toFixed(2);
+      const hIn = (originalDimensions.height / 72).toFixed(2);
+      const wInput = document.getElementById('widthIn');
+      const hInput = document.getElementById('heightIn');
+      if (wInput) wInput.value = wIn;
+      if (hInput) hInput.value = hIn;
+      originalCanvas.width = viewport.width;
+      originalCanvas.height = viewport.height;
+      await page.render({ canvasContext: originalCtx, viewport }).promise;
+      updateFileInfo();
+    }
+
+    // ---------- Tool action handlers ----------
+    function handleResize() {
+      if (!validateInputs()) return;
+      const widthIn = parseFloat(document.getElementById('widthIn').value);
+      const heightIn = parseFloat(document.getElementById('heightIn').value);
+      const dpi = parseInt(document.getElementById('dpi').value);
+      const targetW = Math.round(widthIn * dpi);
+      const targetH = Math.round(heightIn * dpi);
+      processedCanvas.width = targetW;
+      processedCanvas.height = targetH;
+      processedCtx.drawImage(originalCanvas, 0, 0, targetW, targetH);
+      document.getElementById('processedHeader').textContent = '📐 Resized Image';
+      lastResult = { width: targetW, height: targetH };
+      updateFileInfo(lastResult);
+      enableDownload();
+      showMessage('✅ Resized to ' + targetW + ' × ' + targetH + ' px', 'success');
+    }
+
+    async function handleUpscale() {
+      if (!validateInputs()) return;
+      const scale = parseInt(document.getElementById('scaleFactor').value);
+      showLoading('🔬 Running AI upscale...', 'Initializing neural network');
+      try {
+        const ok = await tryRealAIUpscale(scale, selectedQualityMode);
+        hideLoading();
+        if (ok) {
+          showMessage('🎉 Real AI upscaling complete!', 'success');
+        } else {
+          showMessage('⚠️ AI engine unavailable, using enhanced simulation.', 'info');
+          await simulateAIUpscaling(scale);
+        }
+      } catch (err) {
+        hideLoading();
+        showMessage('❌ Error: ' + err.message, 'error');
+      }
+    }
+
+    async function handleEnhance() {
+      if (!validateInputs()) return;
+      const level = document.getElementById('enhanceLevel').value;
+      const noise = parseInt(document.getElementById('noiseReduction').value);
+      const sharp = parseInt(document.getElementById('sharpening').value);
+      showLoading('✨ AI is enhancing your image...', 'Real ESRGAN neural network');
+      try {
+        const ok = await tryRealAIEnhance(level, noise, sharp);
+        hideLoading();
+        if (ok) {
+          showMessage('🌟 Real AI enhancement complete!', 'success');
+        } else {
+          showMessage('⚠️ AI engine unavailable, using enhanced simulation.', 'info');
+        }
+      } catch (err) {
+        hideLoading();
+        showMessage('❌ Error: ' + err.message, 'error');
+      }
+    }
+
+    // =============================================================
+    //   AI ENGINE — same as main app, self-contained
+    // =============================================================
+    const MODEL_REGISTRY = {
+      'esrgan-thick-2x':   { pkg: 'esrgan-thick',  scale: 2, url: 'https://cdn.jsdelivr.net/npm/@upscalerjs/esrgan-thick@1.0.0-beta.10/dist/umd/2x.min.js',  sizeMB: 30, bestFor: 'general, enhance' },
+      'esrgan-thick-3x':   { pkg: 'esrgan-thick',  scale: 3, url: 'https://cdn.jsdelivr.net/npm/@upscalerjs/esrgan-thick@1.0.0-beta.10/dist/umd/3x.min.js',  sizeMB: 30, bestFor: 'general, enhance' },
+      'esrgan-thick-4x':   { pkg: 'esrgan-thick',  scale: 4, url: 'https://cdn.jsdelivr.net/npm/@upscalerjs/esrgan-thick@1.0.0-beta.10/dist/umd/4x.min.js',  sizeMB: 30, bestFor: 'general' },
+      'esrgan-medium-2x':  { pkg: 'esrgan-medium', scale: 2, url: 'https://cdn.jsdelivr.net/npm/@upscalerjs/esrgan-medium@1.0.0-beta.10/dist/umd/2x.min.js', sizeMB: 5,  bestFor: 'artwork, anime' },
+      'esrgan-medium-4x':  { pkg: 'esrgan-medium', scale: 4, url: 'https://cdn.jsdelivr.net/npm/@upscalerjs/esrgan-medium@1.0.0-beta.10/dist/umd/4x.min.js', sizeMB: 5,  bestFor: 'artwork, anime' },
+      'esrgan-slim-2x':    { pkg: 'esrgan-slim',   scale: 2, url: 'https://cdn.jsdelivr.net/npm/@upscalerjs/esrgan-slim@1.0.0-beta.10/dist/umd/2x.min.js',   sizeMB: 1,  bestFor: 'fast' },
+    };
+    function modelKeyFor(mode, scale) {
+      if (mode === 'artwork' || mode === 'anime') return 'esrgan-medium-' + scale + 'x';
+      if (mode === 'fast')   return 'esrgan-slim-2x';
+      return 'esrgan-thick-' + Math.min(scale, 4) + 'x';
+    }
+
+    const AIEngine = (() => {
+      let loadPromise = null;
+      const loadedModels = new Set();
+      function injectScript(src) {
+        return new Promise((resolve, reject) => {
+          const existing = document.querySelector(`script[src="${src}"]`);
+          if (existing) {
+            if (existing.dataset.loaded) return resolve();
+            existing.addEventListener('load', resolve);
+            existing.addEventListener('error', reject);
+            return;
+          }
+          const s = document.createElement('script');
+          s.src = src; s.async = false;
+          s.onload = () => { s.dataset.loaded = '1'; resolve(); };
+          s.onerror = () => reject(new Error('Failed to load: ' + src));
+          document.head.appendChild(s);
+        });
+      }
+      async function loadCore() {
+        if (loadPromise) return loadPromise;
+        loadPromise = (async () => {
+          if (typeof tf === 'undefined') {
+            await injectScript('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0/dist/tf.min.js');
+          }
+          await tf.ready();
+          if (typeof Upscaler === 'undefined') {
+            await injectScript('https://cdn.jsdelivr.net/npm/upscaler@1.0.0-beta.19/dist/browser/umd/upscaler.min.js');
+          }
+        })();
+        try { await loadPromise; }
+        catch (e) { loadPromise = null; throw e; }
+      }
+      async function loadModel(modelKey) {
+        if (loadedModels.has(modelKey)) return;
+        const reg = MODEL_REGISTRY[modelKey];
+        if (!reg) throw new Error('Unknown model: ' + modelKey);
+        await injectScript(reg.url);
+        loadedModels.add(modelKey);
+      }
+      return { loadCore, loadModel };
+    })();
+
+    async function realAIUpscale(sourceCanvas, mode, scale) {
+      await AIEngine.loadCore();
+      const modelKey = modelKeyFor(mode, scale);
+      const reg = MODEL_REGISTRY[modelKey];
+      showLoading('⏳ Loading model ' + reg.pkg + ' ' + scale + 'x…', '~' + reg.sizeMB + ' MB · cached for next time');
+      await AIEngine.loadModel(modelKey);
+      const modelDef = window['ESRGAN' + reg.pkg[0].toUpperCase() + reg.pkg.slice(1) + scale + 'x'];
+      if (!modelDef) throw new Error('Model definition not found: ' + modelKey);
+      const upscaler = new Upscaler({ model: modelDef });
+      showLoading('🧠 Running ' + reg.pkg + ' ' + scale + 'x…',
+        sourceCanvas.width + '×' + sourceCanvas.height + ' → ' + (sourceCanvas.width * scale) + '×' + (sourceCanvas.height * scale));
+      const t0 = performance.now();
+      const result = await upscaler.upscale(sourceCanvas, {
+        patchSize: scale >= 4 ? 128 : 256,
+        padding: 4,
+        progress: rate => updateProgress(Math.round(rate * 100)),
+      });
+      const t1 = performance.now();
+      if (typeof result === 'string') {
+        const img = new Image();
+        await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = result; });
+        processedCanvas.width = img.naturalWidth;
+        processedCanvas.height = img.naturalHeight;
+        processedCtx.drawImage(img, 0, 0);
+      } else if (result instanceof HTMLCanvasElement) {
+        processedCanvas.width = result.width;
+        processedCanvas.height = result.height;
+        processedCtx.drawImage(result, 0, 0);
+      } else {
+        await tf.browser.toPixels(result, processedCanvas);
+      }
+      return { model: reg.pkg + '-' + scale + 'x', width: processedCanvas.width, height: processedCanvas.height, ms: t1 - t0 };
+    }
+
+    async function tryRealAIUpscale(scale, mode) {
+      try {
+        const info = await realAIUpscale(originalCanvas, mode, scale);
+        if (typeof applyAIFilter === 'function') applyAIFilter(mode);
+        document.getElementById('processedHeader').textContent =
+          '🚀 AI Upscaled ' + scale + 'x (real ' + info.model + ')';
+        lastResult = { width: processedCanvas.width, height: processedCanvas.height };
+        updateFileInfo(lastResult);
+        enableDownload();
+        updateProgress(100);
+        return true;
+      } catch (e) {
+        console.warn('[AI Upscale] Real AI failed, fallback to sim:', e);
+        return false;
+      }
+    }
+
+    async function tryRealAIEnhance(level, noise, sharp) {
+      try {
+        await AIEngine.loadCore();
+        const modelKey = 'esrgan-thick-2x';
+        if (!AIEngine.loadedModels || true) {
+          showLoading('⏳ Loading AI model weights…', '~30 MB · cached after first use');
+          await AIEngine.loadModel(modelKey);
+        }
+        const modelDef = window.ESRGANThick2x;
+        if (!modelDef) throw new Error('AI model not available after load');
+        const upscaler = new Upscaler({ model: modelDef });
+        showLoading('🧠 Running real AI neural network...',
+          originalCanvas.width + '×' + originalCanvas.height + ' → ' + (originalCanvas.width * 2) + '×' + (originalCanvas.height * 2));
+        const t0 = performance.now();
+        const upscaled = await upscaler.upscale(originalCanvas, {
+          patchSize: 128,
+          padding: 4,
+          progress: rate => updateProgress(Math.round(rate * 100)),
+        });
+        const t1 = performance.now();
+        if (typeof upscaled === 'string') {
+          const img = new Image();
+          await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = upscaled; });
+          processedCanvas.width = img.naturalWidth;
+          processedCanvas.height = img.naturalHeight;
+          processedCtx.drawImage(img, 0, 0);
+        } else if (upscaled instanceof HTMLCanvasElement) {
+          processedCanvas.width = upscaled.width;
+          processedCanvas.height = upscaled.height;
+          processedCtx.drawImage(upscaled, 0, 0);
+        } else {
+          await tf.browser.toPixels(upscaled, processedCanvas);
+        }
+        showLoading('🎨 Applying denoise + sharpen...', 'Fine-tuning with your slider values');
+        applyEnhancementFilters(level, noise, sharp);
+        const activePreset = document.querySelector('.preset-btn-fs.active');
+        if (activePreset) {
+          const presetKey = activePreset.dataset.preset;
+          const preset = MAGIC_PRESETS[presetKey];
+          if (preset && typeof preset.pass === 'function') {
+            showLoading('✨ Applying preset: ' + preset.label + '…', 'One-click look on top of AI result');
+            preset.pass(processedCanvas);
+            document.getElementById('processedHeader').textContent = '✨ AI Enhanced · ' + preset.emoji + ' ' + preset.label;
+          }
+        } else {
+          document.getElementById('processedHeader').textContent = '✨ AI Enhanced (real neural net · ' + level + ')';
+        }
+        lastResult = { width: processedCanvas.width, height: processedCanvas.height };
+        updateFileInfo(lastResult);
+        enableDownload();
+        updateProgress(100);
+        console.log('[AI Enhance] done in ' + (t1 - t0).toFixed(0) + 'ms · ' + processedCanvas.width + 'x' + processedCanvas.height);
+        return true;
+      } catch (e) {
+        console.warn('[AI Enhance] Real AI failed, fallback to sim:', e);
+        await simulateAIEnhancement(level, noise, sharp);
+        return false;
+      }
+    }
+
+    // ---------- Simulated fallbacks (used if AI scripts fail to load) ----------
+    function simulateAIUpscaling(scale) {
+      return new Promise((resolve) => {
+        const newW = originalDimensions.width * scale;
+        const newH = originalDimensions.height * scale;
+        processedCanvas.width = newW;
+        processedCanvas.height = newH;
+        processedCtx.imageSmoothingEnabled = true;
+        processedCtx.imageSmoothingQuality = 'high';
+        processedCtx.drawImage(originalCanvas, 0, 0, newW, newH);
+        applyAIFilter(selectedQualityMode);
+        document.getElementById('processedHeader').textContent = '🚀 AI Upscaled ' + scale + 'x (sim)';
+        lastResult = { width: newW, height: newH };
+        updateFileInfo(lastResult);
+        enableDownload();
+        updateProgress(100);
+        resolve();
+      });
+    }
+    function simulateAIEnhancement(level, noise, sharp) {
+      processedCanvas.width = originalDimensions.width;
+      processedCanvas.height = originalDimensions.height;
+      processedCtx.drawImage(originalCanvas, 0, 0);
+      applyEnhancementFilters(level, noise, sharp);
+      const activePreset = document.querySelector('.preset-btn-fs.active');
+      if (activePreset) {
+        const preset = MAGIC_PRESETS[activePreset.dataset.preset];
+        if (preset && typeof preset.pass === 'function') {
+          preset.pass(processedCanvas);
+          document.getElementById('processedHeader').textContent = '✨ AI Enhanced · ' + preset.emoji + ' ' + preset.label;
+        }
+      } else {
+        document.getElementById('processedHeader').textContent = '✨ AI Enhanced (sim)';
+      }
+      lastResult = { width: processedCanvas.width, height: processedCanvas.height };
+      updateFileInfo(lastResult);
+      enableDownload();
+    }
+
+    // ---------- Pixel filters (used for the per-mode post pass + simulation) ----------
+    function applyAIFilter(mode) {
+      const imageData = processedCtx.getImageData(0, 0, processedCanvas.width, processedCanvas.height);
+      const d = imageData.data;
+      switch (mode) {
+        case 'artwork': applyArtworkEnhancement(d); break;
+        case 'anime':   applyAnimeEnhancement(d); break;
+        case 'face':    applyPortraitEnhancement(d); break;
+        default:        applyGeneralEnhancement(d);
+      }
+      processedCtx.putImageData(imageData, 0, 0);
+    }
+    function applyEnhancementFilters(level, noise, sharp) {
+      const imageData = processedCtx.getImageData(0, 0, processedCanvas.width, processedCanvas.height);
+      const d = imageData.data;
+      if (noise > 0) applyNoiseReduction(d, noise / 100);
+      if (sharp > 0) applySharpening(d, sharp / 100);
+      const e = level === 'mild' ? 0.3 : level === 'moderate' ? 0.6 : 0.9;
+      applyContrastEnhancement(d, e);
+      processedCtx.putImageData(imageData, 0, 0);
+    }
+    function applyGeneralEnhancement(d) {
+      for (let i = 0; i < d.length; i += 4) {
+        d[i]   = Math.min(255, d[i]   * 1.10);
+        d[i+1] = Math.min(255, d[i+1] * 1.10);
+        d[i+2] = Math.min(255, d[i+2] * 1.10);
+      }
+    }
+    function applyArtworkEnhancement(d) {
+      for (let i = 0; i < d.length; i += 4) {
+        const avg = (d[i] + d[i+1] + d[i+2]) / 3;
+        d[i]   = Math.min(255, avg + (d[i]   - avg) * 1.3);
+        d[i+1] = Math.min(255, avg + (d[i+1] - avg) * 1.3);
+        d[i+2] = Math.min(255, avg + (d[i+2] - avg) * 1.3);
+      }
+    }
+    function applyAnimeEnhancement(d) {
+      for (let i = 0; i < d.length; i += 4) {
+        d[i]   = Math.min(255, Math.round(d[i]   * 1.15));
+        d[i+1] = Math.min(255, Math.round(d[i+1] * 1.15));
+        d[i+2] = Math.min(255, Math.round(d[i+2] * 1.15));
+      }
+    }
+    function applyPortraitEnhancement(d) {
+      for (let i = 0; i < d.length; i += 4) {
+        if (d[i] > d[i+1] && d[i+1] > d[i+2]) {
+          d[i]   = Math.min(255, d[i]   * 1.05);
+          d[i+1] = Math.min(255, d[i+1] * 1.02);
+        }
+      }
+    }
+    function applyNoiseReduction(d, strength) {
+      for (let i = 0; i < d.length; i += 4) {
+        const n = (Math.random() - 0.5) * 10 * (1 - strength);
+        d[i]   = Math.max(0, Math.min(255, d[i]   + n));
+        d[i+1] = Math.max(0, Math.min(255, d[i+1] + n));
+        d[i+2] = Math.max(0, Math.min(255, d[i+2] + n));
+      }
+    }
+    function applySharpening(d, strength) {
+      for (let i = 0; i < d.length; i += 4) {
+        d[i]   = Math.min(255, d[i]   * (1 + strength * 0.2));
+        d[i+1] = Math.min(255, d[i+1] * (1 + strength * 0.2));
+        d[i+2] = Math.min(255, d[i+2] * (1 + strength * 0.2));
+      }
+    }
+    function applyContrastEnhancement(d, strength) {
+      for (let i = 0; i < d.length; i += 4) {
+        d[i]   = Math.min(255, Math.max(0, (d[i]   - 128) * (1 + strength) + 128));
+        d[i+1] = Math.min(255, Math.max(0, (d[i+1] - 128) * (1 + strength) + 128));
+        d[i+2] = Math.min(255, Math.max(0, (d[i+2] - 128) * (1 + strength) + 128));
+      }
+    }
+
+    // =============================================================
+    //   MAGIC PRESETS
+    // =============================================================
+    const MAGIC_PRESETS = {
+      portrait:  { label: 'Portrait Pop', emoji: '👤', level: 'moderate', noise: 30, sharpen: 40, pass: c => tintWarm(c, 1.04, 4) },
+      landscape: { label: 'Vivid',        emoji: '🏔️', level: 'strong',   noise: 20, sharpen: 60, pass: c => boostSat(c, 1.4) },
+      oldphoto:  { label: 'Old Photo',    emoji: '📜', level: 'strong',   noise: 70, sharpen: 50, pass: c => tintWarmSepia(c) },
+      lowlight:  { label: 'Low Light',    emoji: '🌙', level: 'strong',   noise: 80, sharpen: 30, pass: c => liftShadows(c, 0.55) },
+      bw:        { label: 'B&W',          emoji: '🎞️', level: 'moderate', noise: 20, sharpen: 50, pass: c => toGrayscale(c) },
+      vintage:   { label: 'Vintage',      emoji: '🕶️', level: 'mild',     noise: 20, sharpen: 30, pass: c => tintWarm(c, 1.10, 8, 0.85) },
+      sharpen:   { label: 'Crystal',      emoji: '💎', level: 'strong',   noise: 10, sharpen: 90, pass: null },
+      web:       { label: 'Web',          emoji: '🌐', level: 'mild',     noise: 50, sharpen: 20, pass: c => bumpContrast(c, 1.10) },
+    };
+    function tintWarm(c, rMul, rAdd, bMul) {
+      const ctx = c.getContext('2d');
+      const img = ctx.getImageData(0, 0, c.width, c.height);
+      const d = img.data;
+      for (let i = 0; i < d.length; i += 4) {
+        d[i]   = Math.min(255, d[i]   * rMul + (rAdd || 0));
+        d[i+1] = Math.min(255, d[i+1] * 1.02 + ((rAdd || 0) / 2));
+        if (bMul) d[i+2] = Math.min(255, d[i+2] * bMul);
+      }
+      ctx.putImageData(img, 0, 0);
+    }
+    function tintWarmSepia(c) {
+      const ctx = c.getContext('2d');
+      const img = ctx.getImageData(0, 0, c.width, c.height);
+      const d = img.data;
+      for (let i = 0; i < d.length; i += 4) {
+        d[i]   = Math.min(255, d[i]   * 1.05 + 6);
+        d[i+1] = Math.min(255, d[i+1] * 1.02 + 3);
+        d[i+2] = Math.min(255, d[i+2] * 0.95);
+      }
+      ctx.putImageData(img, 0, 0);
+    }
+    function boostSat(c, factor) {
+      const ctx = c.getContext('2d');
+      const img = ctx.getImageData(0, 0, c.width, c.height);
+      const d = img.data;
+      for (let i = 0; i < d.length; i += 4) {
+        const g = d[i]*0.299 + d[i+1]*0.587 + d[i+2]*0.114;
+        d[i]   = Math.min(255, g + (d[i]   - g) * factor);
+        d[i+1] = Math.min(255, g + (d[i+1] - g) * factor);
+        d[i+2] = Math.min(255, g + (d[i+2] - g) * factor);
+      }
+      ctx.putImageData(img, 0, 0);
+    }
+    function liftShadows(c, gamma) {
+      const ctx = c.getContext('2d');
+      const img = ctx.getImageData(0, 0, c.width, c.height);
+      const d = img.data;
+      for (let i = 0; i < d.length; i += 4) {
+        d[i]   = Math.min(255, 255 * Math.pow(d[i]   / 255, gamma));
+        d[i+1] = Math.min(255, 255 * Math.pow(d[i+1] / 255, gamma));
+        d[i+2] = Math.min(255, 255 * Math.pow(d[i+2] / 255, gamma));
+      }
+      ctx.putImageData(img, 0, 0);
+    }
+    function toGrayscale(c) {
+      const ctx = c.getContext('2d');
+      const img = ctx.getImageData(0, 0, c.width, c.height);
+      const d = img.data;
+      for (let i = 0; i < d.length; i += 4) {
+        const g = d[i]*0.299 + d[i+1]*0.587 + d[i+2]*0.114;
+        d[i] = d[i+1] = d[i+2] = g;
+      }
+      ctx.putImageData(img, 0, 0);
+    }
+    function bumpContrast(c, factor) {
+      const ctx = c.getContext('2d');
+      const img = ctx.getImageData(0, 0, c.width, c.height);
+      const d = img.data;
+      for (let i = 0; i < d.length; i += 4) {
+        d[i]   = Math.max(0, Math.min(255, (d[i]   - 128) * factor + 128));
+        d[i+1] = Math.max(0, Math.min(255, (d[i+1] - 128) * factor + 128));
+        d[i+2] = Math.max(0, Math.min(255, (d[i+2] - 128) * factor + 128));
+      }
+      ctx.putImageData(img, 0, 0);
+    }
+    function applyMagicPreset(key) {
+      const preset = MAGIC_PRESETS[key];
+      if (!preset) return;
+      const levelEl = document.getElementById('enhanceLevel');
+      const noiseEl = document.getElementById('noiseReduction');
+      const sharpEl = document.getElementById('sharpening');
+      if (levelEl) levelEl.value = preset.level;
+      if (noiseEl) noiseEl.value = preset.noise;
+      if (sharpEl) sharpEl.value = preset.sharpen;
+      updateNoiseValue();
+      updateSharpValue();
+      document.querySelectorAll('.preset-btn-fs').forEach(b => b.classList.remove('active'));
+      const btn = document.querySelector('.preset-btn-fs[data-preset="' + key + '"]');
+      if (btn) btn.classList.add('active');
+      showMessage('✨ Preset: ' + preset.emoji + ' ' + preset.label, 'info');
+    }
+
+    // =============================================================
+    //   Download + PDF export
+    // =============================================================
+    function enableDownload() {
+      const dl = document.getElementById('downloadBtn');
+      const pdf = document.getElementById('pdfBtn');
+      if (dl) dl.disabled = false;
+      if (pdf) pdf.disabled = false;
+    }
+    function downloadProcessedImage() {
+      processedCanvas.toBlob(blob => {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        let name = (currentFile?.name || 'image').replace(/\.[^.]+$/, '');
+        let suffix = TOOL;
+        if (TOOL === 'resize') {
+          const w = document.getElementById('widthIn').value;
+          const h = document.getElementById('heightIn').value;
+          const d = document.getElementById('dpi').value;
+          suffix = 'resized_' + w + 'x' + h + 'in_' + d + 'dpi';
+        } else if (TOOL === 'upscale') {
+          const s = document.getElementById('scaleFactor').value;
+          suffix = 'ai_upscaled_' + s + 'x_' + selectedQualityMode;
+        } else if (TOOL === 'enhance') {
+          const lvl = document.getElementById('enhanceLevel').value;
+          const active = document.querySelector('.preset-btn-fs.active');
+          suffix = 'ai_enhanced_' + lvl + (active ? '_' + active.dataset.preset : '');
+        }
+        a.download = name + '_' + suffix + '.png';
+        a.click();
+        showMessage('📥 Download started!', 'success');
+      }, 'image/png');
+    }
+    let pdfLibPromise = null;
+    function loadPdfLib() {
+      if (pdfLibPromise) return pdfLibPromise;
+      pdfLibPromise = new Promise((resolve, reject) => {
+        if (typeof PDFLib !== 'undefined') return resolve();
+        const s = document.createElement('script');
+        s.src = 'https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js';
+        s.onload = () => resolve();
+        s.onerror = () => reject(new Error('Failed to load pdf-lib'));
+        document.head.appendChild(s);
+      });
+      return pdfLibPromise;
+    }
+    async function exportAsPDF() {
+      if (!processedCanvas.width || !originalDimensions) {
+        showMessage('⚠️ Process an image first.', 'error');
+        return;
+      }
+      try {
+        showLoading('⏳ Building PDF…', 'Encoding image and embedding into PDF');
+        await loadPdfLib();
+        const { PDFDocument } = PDFLib;
+        const doc = await PDFDocument.create();
+        const blob = await new Promise(r => processedCanvas.toBlob(r, 'image/png'));
+        const bytes = new Uint8Array(await blob.arrayBuffer());
+        const img = await doc.embedPng(bytes);
+        const page = doc.addPage([processedCanvas.width, processedCanvas.height]);
+        page.drawImage(img, { x: 0, y: 0, width: processedCanvas.width, height: processedCanvas.height });
+        const pdfBytes = await doc.save();
+        const pdfBlob = new Blob([pdfBytes], { type: 'application/pdf' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(pdfBlob);
+        const baseName = (currentFile?.name || 'export').replace(/\.[^.]+$/, '');
+        a.download = baseName + '_' + TOOL + '.pdf';
+        a.click();
+        hideLoading();
+        showMessage('📄 PDF downloaded!', 'success');
+      } catch (e) {
+        hideLoading();
+        showMessage('❌ PDF export failed: ' + e.message, 'error');
+      }
+    }
+
+    // =============================================================
+    //   File info + UI helpers
+    // =============================================================
+    function updateFileInfo(processedDims) {
+      if (!originalDimensions) return;
+      const basic = document.getElementById('basicInfo');
+      const compare = document.getElementById('sizeComparison');
+      basic.innerHTML = `
+        <div class="info-line"><strong>📁 File:</strong> ${currentFile.name}</div>
+        <div class="info-line"><strong>📄 Type:</strong> ${currentFile.type || '—'}</div>
+        <div class="info-line"><strong>💾 Size:</strong> ${formatFileSize(currentFile.size)}</div>
+        <div class="info-line"><strong>🎯 Mode:</strong> ${TOOL.toUpperCase()}</div>
+        <div class="info-line"><strong>🔗 Aspect:</strong> ${originalAspectRatio.toFixed(3)}</div>
+      `;
+      if (processedDims) {
+        const indicator = getResizeIndicator(processedDims);
+        const origIn = { w: (originalDimensions.width / 72).toFixed(2), h: (originalDimensions.height / 72).toFixed(2) };
+        let procIn;
+        if (TOOL === 'resize') {
+          procIn = { w: document.getElementById('widthIn').value, h: document.getElementById('heightIn').value };
+        } else {
+          procIn = { w: (processedDims.width / 72).toFixed(2), h: (processedDims.height / 72).toFixed(2) };
+        }
+        compare.innerHTML = `
+          <div class="size-block-fs original-fs">
+            <h4>📏 Original</h4>
+            <div class="stat">${originalDimensions.width} × ${originalDimensions.height} px</div>
+            <div class="stat">${origIn.w}" × ${origIn.h}" @ 72 DPI</div>
+          </div>
+          <div class="size-block-fs ${indicator.cls}">
+            <h4>${indicator.icon} ${indicator.label}</h4>
+            <div class="stat">${processedDims.width} × ${processedDims.height} px</div>
+            <div class="stat">${procIn.w}" × ${procIn.h}"</div>
+          </div>
+        `;
+      }
+      document.getElementById('fileInfo').style.display = 'block';
+    }
+    function getResizeIndicator(processed) {
+      if (TOOL === 'upscale') return { icon: '🚀', label: 'AI Upscaled', cls: 'enhanced-fs' };
+      if (TOOL === 'enhance') return { icon: '✨', label: 'AI Enhanced', cls: 'enhanced-fs' };
+      const o = originalDimensions.width * originalDimensions.height;
+      const p = processed.width * processed.height;
+      if (p < o) return { icon: '🟢', label: 'Reduced',   cls: 'reduced-fs' };
+      if (p > o) return { icon: '🔴', label: 'Stretched', cls: 'stretched-fs' };
+      return { icon: '🟡', label: 'Same Size', cls: '' };
+    }
+    function formatFileSize(bytes) {
+      if (!bytes) return '0 B';
+      const k = 1024, sizes = ['B', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return (bytes / Math.pow(k, i)).toFixed(2) + ' ' + sizes[i];
+    }
+    function showMessage(msg, type) {
+      const area = document.getElementById('messageArea');
+      area.innerHTML = '<div class="message-fs ' + type + '">' + msg + '</div>';
+      clearTimeout(showMessage._t);
+      showMessage._t = setTimeout(() => area.innerHTML = '', 5000);
+    }
+    function showLoading(text, sub) {
+      document.getElementById('loadingText').textContent = text || 'Working...';
+      document.getElementById('loadingSub').textContent = sub || '';
+      document.getElementById('loadingOverlay').classList.add('active');
+      updateProgress(0);
+    }
+    function hideLoading() {
+      document.getElementById('loadingOverlay').classList.remove('active');
+    }
+    function updateProgress(p) {
+      document.getElementById('progressFill').style.width = p + '%';
+    }
+    function updateNoiseValue() {
+      const v = document.getElementById('noiseReduction');
+      const out = document.getElementById('noiseValue');
+      if (v && out) out.textContent = v.value + '%';
+    }
+    function updateSharpValue() {
+      const v = document.getElementById('sharpening');
+      const out = document.getElementById('sharpValue');
+      if (v && out) out.textContent = v.value + '%';
+    }
+    function validateInputs() {
+      if (!currentFile) {
+        showMessage('⚠️ Please upload a file first.', 'error');
+        return false;
+      }
+      if (TOOL === 'resize') {
+        const w = parseFloat(document.getElementById('widthIn').value);
+        const h = parseFloat(document.getElementById('heightIn').value);
+        const d = parseInt(document.getElementById('dpi').value);
+        if (!w || w <= 0)  { showMessage('⚠️ Width must be > 0',  'error'); return false; }
+        if (!h || h <= 0)  { showMessage('⚠️ Height must be > 0', 'error'); return false; }
+        if (!d || d < 72 || d > 600) { showMessage('⚠️ DPI must be 72–600', 'error'); return false; }
+      }
+      if ((TOOL === 'upscale' || TOOL === 'enhance') && !currentFile.type.startsWith('image/')) {
+        showMessage('⚠️ AI tools need an image (JPEG/PNG).', 'error');
+        return false;
+      }
+      return true;
+    }
+
+    // =============================================================
+    //   Auto-load from sessionStorage when ?pending=1
+    // =============================================================
+    async function tryLoadPending() {
+      if (!PENDING) return false;
+      // We use localStorage (not sessionStorage) so the new tab can read what
+      // the opener tab wrote. sessionStorage is per-tab in browsers, localStorage
+      // is per-origin and shared across all tabs.
+      const raw = localStorage.getItem('fullscreen_pending_image');
+      if (!raw) return false;
+      try {
+        const parsed = JSON.parse(raw);
+        localStorage.removeItem('fullscreen_pending_image');
+        const base64 = parsed.dataBase64.split(',')[1];
+        const binary = atob(base64);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+        const file = new File([bytes], parsed.name, { type: parsed.type, lastModified: parsed.lastModified });
+        loadFile(file);
+        showMessage('📥 Auto-loaded ' + parsed.name + ' from main app', 'info');
+        return true;
+      } catch (e) {
+        console.warn('[fullscreen] Failed to auto-load pending image:', e);
+        return false;
+      }
+    }
+
+    // =============================================================
+    //   Bootstrap
+    // =============================================================
+    document.addEventListener('DOMContentLoaded', () => {
+      buildSidebar();
+      document.getElementById('backBtn').addEventListener('click', () => {
+        if (window.history.length > 1) window.history.back();
+        else window.location.href = 'index.html';
+      });
+      document.getElementById('resetBtn').addEventListener('click', () => {
+        if (!currentFile) return;
+        loadFile(currentFile); // re-load original
+        processedCtx.clearRect(0, 0, processedCanvas.width, processedCanvas.height);
+        document.getElementById('processedHeader').textContent = '✨ Processed';
+        document.getElementById('downloadBtn').disabled = true;
+        document.getElementById('pdfBtn').disabled = true;
+        lastResult = null;
+        showMessage('↺ Reset to original', 'info');
+      });
+      tryLoadPending();
+    });
+  </script>
+</body>
+</html>

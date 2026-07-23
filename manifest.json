@@ -1,0 +1,37 @@
+{
+  "name": "AI Image Enhancer",
+  "short_name": "AI Enhancer",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#667eea",
+  "theme_color": "#667eea",
+  "description": "Smart Resize, AI Upscale, and Real AI Enhancement - all in your browser",
+  "icons": [],
+  "shortcuts": [
+    {
+      "name": "Smart Resize",
+      "short_name": "Resize",
+      "description": "Print-ready resize by inches & DPI",
+      "url": "./fullscreen.html?tool=resize"
+    },
+    {
+      "name": "AI Upscale",
+      "short_name": "Upscale",
+      "description": "Real neural network super-resolution",
+      "url": "./fullscreen.html?tool=upscale"
+    },
+    {
+      "name": "AI Enhance",
+      "short_name": "Enhance",
+      "description": "Real ESRGAN + magic presets",
+      "url": "./fullscreen.html?tool=enhance"
+    },
+    {
+      "name": "Open Studio",
+      "short_name": "Studio",
+      "description": "Full-page editor with real neural networks",
+      "url": "./studio.html"
+    }
+  ]
+}
